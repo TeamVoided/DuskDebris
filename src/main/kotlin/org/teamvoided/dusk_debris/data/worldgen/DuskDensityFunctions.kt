@@ -53,12 +53,10 @@ object DuskDensityFunctions {
 
     val AQU_BARRIER = create("aquifer/barrier")
     val AQU_FLOODEDNESS = create("aquifer/floodedness")
-    val AQU_FLOODEDNESS_LB = create("large_biomes/aquifer/floodedness")
     val AQU_FLUID_SPREAD = create("aquifer/fluid_level_spread")
-    val AQU_FLUID_SPREAD_LB = create("large_biomes/aquifer/fluid_level_spread")
     val AQU_LAVA = create("aquifer/lava")
 
-
+    //region Nether
     //* - - - * THE NETHER * - - - *//
     val NETHER_PILLARS = nether("nether_pillars")
 
@@ -109,6 +107,7 @@ object DuskDensityFunctions {
     val EROSION_NETHER_AMPLIFIED = nether("parameters/amplified/erosion")
     val DEPTH_NETHER_AMPLIFIED = nether("parameters/amplified/depth")
     */
+    //endregion
 
     private fun nether(id: String): ResourceKey<DensityFunction> =
         ResourceKey.create(Registries.DENSITY_FUNCTION, id("nether/$id"))

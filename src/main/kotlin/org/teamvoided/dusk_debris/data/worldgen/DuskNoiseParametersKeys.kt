@@ -22,14 +22,14 @@ object DuskNoiseParametersKeys {
     val UR_TYPE = create("cave/underground_river/type")
     val UR_HEIGHT = create("cave/underground_river/height")
 
-    val LAKE_CAVE_CAVERNS = create("cave/lake/cavern")
+    val LAKE_SHAPE = create("lake/shape")
     val LAKE_CAVE_PILLARS = create("cave/lake/pillars")
 
     val STONE_TOWERS = create("stone_towers/towers")
     val STONE_TOWERS_HEIGHT = create("stone_towers/height")
     val STONE_TOWERS_OFFSET = create("stone_towers/offset")
 
-
+    //region Nether
     //* - - - * THE NETHER * - - - *//
     //val LAVA_TUBE = create("lava_tube")
     val LAVA_LEVEL = nether("lava_level")
@@ -48,7 +48,7 @@ object DuskNoiseParametersKeys {
     val EROSION_LARGE_NETHER = nether("parameters/large_biomes/erosion")
     val DROP_CEILING_LARGE = nether("large_biomes/drop_ceiling")
      */
-
+    //endregion
 
     private  fun create(id: String): ResourceKey<NormalNoise.NoiseParameters> =
         ResourceKey.create(Registries.NOISE, id(id))

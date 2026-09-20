@@ -131,7 +131,7 @@ object UndergroundDensityCreator {
                 add(
                     clampedGradientY(-16, 84, 1.5, -1.5).cube().abs(),
                     noise(
-                        this.noiseHold(DuskNoiseParametersKeys.LAKE_CAVE_CAVERNS),
+                        this.noiseHold(DuskNoiseParametersKeys.LAKE_SHAPE),
                         1.0,
                         2.0
                     )

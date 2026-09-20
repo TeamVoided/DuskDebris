@@ -55,9 +55,6 @@ object DuskBlocks {
 
     val STRONG_SCAFFOLDING =
         registerStrongScaffolding("strong_scaffolding", StrongScaffoldingBlock(ofFullCopy(SCAFFOLDING))).cutout()
-    val OVERGROWTH_BLOCK = register("overgrowth_block", OvergrowthBlock(ofFullCopy(MOSS_BLOCK))).grassTint().hoe()
-    val OVERGROWTH_BUSH = register("overgrowth_bush", OvergrowthBushBlock(ofFullCopy(AZALEA))).cutout().grassTint()
-    val OVERGROWTH_LEAVES = register("overgrowth_leaves", LeavesBlock(ofFullCopy(AZALEA_LEAVES))).cutout().grassTint().hoe()
 
     //val STONE_CHEST = register("stone_chest", DuskDoubleChestBlock(copy(CHEST)) { DuskBlockEntities.STONE_CHEST })
 

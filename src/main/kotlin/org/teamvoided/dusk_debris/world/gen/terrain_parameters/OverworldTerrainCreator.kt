@@ -4,6 +4,7 @@ import net.minecraft.util.CubicSpline
 import net.minecraft.util.ToFloatFunction
 import org.teamvoided.dusk_debris.util.world_helper.add
 import org.teamvoided.dusk_debris.world.gen.terrain_parameters.overworld.Offset
+import org.teamvoided.dusk_debris.world.gen.terrain_parameters.overworld.offset.Flats
 import org.teamvoided.dusk_debris.world.gen.terrain_parameters.overworld.offset.Plateaus
 import kotlin.math.abs
 
@@ -159,7 +160,7 @@ object OverworldTerrainCreator {
             .add(-0.65f, 1f)
             .add(-0.6f, 0f)
             .build()
-        val plateauType = CubicSpline.builder(data.plateauType)
+        val plateauType = CubicSpline.builder(data.plats.plateauType)
             .add(Plateaus.PlatType.Plateau.max, 0f)
             .add(Plateaus.PlatType.Cave.min, ridgesF)
             .build()
@@ -175,7 +176,7 @@ object OverworldTerrainCreator {
             .add(Cont.Coast2.f, 0f)
             .add(Cont.Shoreline1.f, erosionOutland)
             .build()
-        return ridgesF
+        return ridgesF //continents
     }
 
     data class TerrainParametersData<C, I : ToFloatFunction<C>>(
@@ -183,10 +184,8 @@ object OverworldTerrainCreator {
         val erosion: I,
         val ridges: I,
         val ridgesFolded: I,
-        val plateauType: I,
-        val grandCanyonRF: I,
-        val flatsType: I,
-        val flatsElev: I,
+        val flats: Flats.FlatsData<C, I>,
+        val plats: Plateaus.PlatData<C, I>,
         var amplifier: ToFloatFunction<Float> = NO_TRANSFORM
     )
 
@@ -212,10 +211,10 @@ object OverworldTerrainCreator {
         return "$type $ridge"
 
 
-        // (x*3)/2
+        // (x*3)/2 OR x1.5
     }
 
     private fun getPeaksAndValleys(ridges: Float): Float {
-        return (ridges * 3f) / 2f //(-(abs(abs(ridges) - 0.6666667f) - 0.33333334f) * 3f)
+        return ridges * 1.5f //(-(abs(abs(ridges) - 0.6666667f) - 0.33333334f) * 3f)
     }
 }

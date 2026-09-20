@@ -18,13 +18,19 @@ object Flats {
      *
      * Raised High, Raised except higher cliffs
      *
+     * Hills, Winswept hill biomes
+     *
      **/
     enum class PlatType(val min: Float, val max: Float = min) {
         Flats(-1f, -0.3f),
         FlatsAndUpper(0f, 0.35f),
-        Raised(0.4f, 0.7f),
-        RaisedHigh(Raised.max + 0.00001f);
+        Raised(0.4f, 0.6f),
+        RaisedHigh(Raised.max + 0.00001f, 0.7f),
+        Hills(0.8f);
     }
+
+
+    data class FlatsData<C, I : ToFloatFunction<C>>(val flatsType: I, val flatsElev: I)
 
     fun <C, I : ToFloatFunction<C>> createFlats(
         contNumber: Float,
@@ -36,14 +42,14 @@ object Flats {
         val raised = raised(contNumber, 10, data)
         val raisedHigh = raised(contNumber, 20, data)
 
-        val spline = CubicSpline.builder(data.flatsType, data.amplifier)
+        val spline = CubicSpline.builder(data.flats.flatsType, data.amplifier)
             //.add(PlatType.Flats.min, flats1)
             .add(PlatType.Flats.max, flats2)
-            //.add(PlatType.FlatsAndUpper.min, flatsAndUpper)
-            //.add(PlatType.FlatsAndUpper.max, flatsAndUpper)
-            //.add(PlatType.Raised.min, raised)
-            //.add(PlatType.Raised.max, raised)
-            //.add(PlatType.RaisedHigh.min, raisedHigh)
+        //.add(PlatType.FlatsAndUpper.min, flatsAndUpper)
+        //.add(PlatType.FlatsAndUpper.max, flatsAndUpper)
+        //.add(PlatType.Raised.min, raised)
+        //.add(PlatType.Raised.max, raised)
+        //.add(PlatType.RaisedHigh.min, raisedHigh)
         return spline.build()
     }
 
@@ -122,7 +128,7 @@ object Flats {
 
         val slope = calculateSlope(center, high) * 1.25f
 
-        val flats = CubicSpline.builder(data.flatsElev, data.amplifier)
+        val flats = CubicSpline.builder(data.flats.flatsElev, data.amplifier)
             .add(low, slope)
             .add(center)
             .add(high, slope)

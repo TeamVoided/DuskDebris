@@ -28,7 +28,7 @@ object NoiseCreator {
         this.register(DuskNoiseParametersKeys.UR_TYPE, -7, 1)
         this.register(DuskNoiseParametersKeys.UR_HEIGHT, -6, 1, 1, 1)
 
-        this.register(DuskNoiseParametersKeys.LAKE_CAVE_CAVERNS, -7, 1)
+        this.register(DuskNoiseParametersKeys.LAKE_SHAPE, -7, 1)
         this.register(DuskNoiseParametersKeys.LAKE_CAVE_PILLARS, -4, 2, 1, 0)
 
         this.register(DuskNoiseParametersKeys.STONE_TOWERS, -7, 1, 1)

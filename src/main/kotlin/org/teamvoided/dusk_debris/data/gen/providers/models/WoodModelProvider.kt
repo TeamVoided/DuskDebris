@@ -11,9 +11,7 @@ object WoodModelProvider {
     fun BlockModelGenerators.generateWoodModels() {
         this.woods()
         this.strongScaffolding(DuskBlocks.STRONG_SCAFFOLDING)
-        this.registerOvergrowthBush(DuskBlocks.OVERGROWTH_BUSH)
-        this.createTrivialBlock(DuskBlocks.OVERGROWTH_BLOCK, TexturedModel.LEAVES)
-        this.createTrivialBlock(DuskBlocks.OVERGROWTH_LEAVES, TexturedModel.LEAVES)
+        // DuskBlocks.OVERGROWTH_BUSH Wood.kt
     }
 
     private fun BlockModelGenerators.woods() {

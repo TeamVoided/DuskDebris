@@ -15,6 +15,8 @@ import org.teamvoided.dusk_debris.data.worldgen.DuskDensityFunctions
 import org.teamvoided.dusk_debris.data.worldgen.DuskNoiseParametersKeys
 import org.teamvoided.dusk_debris.util.world_helper.add
 import org.teamvoided.dusk_debris.world.gen.terrain_parameters.OverworldTerrainCreator
+import org.teamvoided.dusk_debris.world.gen.terrain_parameters.overworld.offset.Flats
+import org.teamvoided.dusk_debris.world.gen.terrain_parameters.overworld.offset.Plateaus
 import voidlib.devin.world.gen.*
 
 object OverworldDensityFunctionCreator {
@@ -183,15 +185,21 @@ object OverworldDensityFunctionCreator {
         //val caveLakeAquifer: RegistryKey<DensityFunction> = DuskDensityFunctions.LAKE_CAVE_AQUIFER
         //val caveLakeDensity: RegistryKey<DensityFunction> = DuskDensityFunctions.LAKE_CAVE_DENSITY
 
+        val flats = Flats.FlatsData(
+            this.wrap(DuskDensityFunctions.FLATS_TYPE),
+            this.wrap(DuskDensityFunctions.FLATS_ELEV)
+        )
+        val plats = Plateaus.PlatData(
+            this.wrap(DuskDensityFunctions.PLATEAU_TYPE),
+            this.wrap(DuskDensityFunctions.GRAND_CANYON_RIDGES_FOLDED)
+        )
         val data = OverworldTerrainCreator.TerrainParametersData(
             this.wrap(continents),
             this.wrap(erosion),
             this.wrap(NoiseRouterData.RIDGES),
             this.wrap(NoiseRouterData.RIDGES_FOLDED),
-            this.wrap(DuskDensityFunctions.PLATEAU_TYPE),
-            this.wrap(DuskDensityFunctions.GRAND_CANYON_RIDGES_FOLDED),
-            this.wrap(DuskDensityFunctions.FLATS_TYPE),
-            this.wrap(DuskDensityFunctions.FLATS_ELEV)
+            flats,
+            plats
         )
 
         this.caveRiver(data, urCondition, urDensity)
@@ -292,9 +300,7 @@ object OverworldDensityFunctionCreator {
                     0.64,
                     min(
                         this.dense(urDensity),
-                        interpolated(
-                            blendDensity(surfaceSlide(amplified, this.dense(cheese)))
-                        )
+                        interpolated(blendDensity(surfaceSlide(amplified, this.dense(cheese))))
                     )
                 ).squeeze()
             )

@@ -29,17 +29,20 @@ object Plateaus {
         Cave(0.7f);
     }
 
+    data class PlatData<C, I : ToFloatFunction<C>>(val plateauType: I, val grandCanyonRF: I)
+
+
     fun <C, I : ToFloatFunction<C>> createPlateaus(
         contNumber: Float,
         data: OverworldTerrainCreator.TerrainParametersData<C, I>
     ): CubicSpline<C, I> {
         val cave = plateau(contNumber, data, true)
         val plateau = plateau(contNumber, data)
-        val canyon = plateau(contNumber, data, false, data.grandCanyonRF)
+        val canyon = plateau(contNumber, data, false, data.plats.grandCanyonRF)
         val eroded = canyon(contNumber, data)
         val layered = canyon(contNumber, data)
 
-        val spline = CubicSpline.builder(data.plateauType, data.amplifier)
+        val spline = CubicSpline.builder(data.plats.plateauType, data.amplifier)
             .add(PlatType.Layered.max, layered)
             .add(PlatType.Eroded.min, eroded)
             .add(PlatType.Eroded.max, eroded)
@@ -89,7 +92,7 @@ object Plateaus {
         val riverbedSlope = calculateSlope(riverbed, plateau1End)
 
 
-        val spline = CubicSpline.builder(data.grandCanyonRF, data.amplifier)
+        val spline = CubicSpline.builder(data.plats.grandCanyonRF, data.amplifier)
             .add(riverbed, riverbedSlope)
             .add(riverbank)
             .add(plateau1Start)
