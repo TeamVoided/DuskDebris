@@ -14,7 +14,6 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.animal.sniffer.Sniffer
 import org.teamvoided.dusk_debris.spell.Spell
 import org.teamvoided.dusk_debris.util.spellController
-import org.teamvoided.dusk_debris.util.splineCommand
 import org.teamvoided.dusk_debris.util.toBlockPos
 import org.teamvoided.dusk_debris.util.variant
 
@@ -42,8 +41,8 @@ object DuskCommands {
             .build()
         spell.addChild(spellType)
 
-        val spline = literal("spline").executes { splineCommand(it) }.build()
-        dispatcher.root.addChild(spline)
+        //val spline = literal("spline").executes { splineCommand(it) }.build()
+        //dispatcher.root.addChild(spline)
     }
 
 

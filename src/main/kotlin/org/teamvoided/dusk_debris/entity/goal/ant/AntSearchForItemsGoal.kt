@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal
+package org.teamvoided.dusk_debris.entity.goal.ant
 
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.ai.goal.Goal

@@ -1,20 +1,14 @@
-package org.teamvoided.dusk_debris.entity.goal
+package org.teamvoided.dusk_debris.entity.goal.ant
 
 import net.minecraft.world.entity.Mob
 
 import net.minecraft.core.BlockPos
 import net.minecraft.tags.BlockTags
-import net.minecraft.world.entity.PathfinderMob
 import net.minecraft.world.entity.ai.goal.Goal
 import net.minecraft.world.entity.ai.util.GoalUtils
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.GameRules
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
-import net.minecraft.world.phys.Vec3
-import org.teamvoided.dusk_debris.data.tags.DuskBlockTags
-import java.lang.Integer.max
-import java.util.*
 
 class BreakBlockGoal(val mob: Mob) : Goal() {
     var blockTargetPos: BlockPos = BlockPos.ZERO
@@ -31,9 +25,6 @@ class BreakBlockGoal(val mob: Mob) : Goal() {
         blockBreakTime = i
     }
 
-    protected fun getBlockBreakTime(): Int {
-        return max(DEFAULT_BLOCK_BREAK_TIME, blockBreakTime)
-    }
 
     override fun canUse(): Boolean {
         if (!GoalUtils.hasGroundPathNavigation(mob) || !mob.horizontalCollision || !gamerulesValid()) {
@@ -42,7 +33,7 @@ class BreakBlockGoal(val mob: Mob) : Goal() {
             val pos = findBlock(10)
             if (pos != null) {
                 val state = mob.level().getBlockState(pos).block
-                val time =
+                val time = 1
                 blockTargetPos = pos
                 blockBreakTime = (mob.level().getBlockState(pos).block.defaultDestroyTime() * 2f * 20f).toInt()
                 return true
@@ -58,9 +49,7 @@ class BreakBlockGoal(val mob: Mob) : Goal() {
     }
 
     override fun canContinueToUse(): Boolean {
-        return breakTime <= getBlockBreakTime() &&
-                blockTargetPos.closerToCenterThan(mob.position(), 2.0) &&
-                gamerulesValid()
+        return blockTargetPos.closerToCenterThan(mob.position(), 2.0) && gamerulesValid()
     }
 
     override fun stop() {
@@ -78,14 +67,14 @@ class BreakBlockGoal(val mob: Mob) : Goal() {
         }
 
         ++breakTime
-        val progress = (breakTime.toFloat() / getBlockBreakTime() * 10f).toInt()
+        val progress = ((breakTime.toFloat() / blockBreakTime) * 10f).toInt()
         if (progress != lastBreakProgress) {
 
             mob.level().destroyBlockProgress(mob.id, blockTargetPos, progress)
             lastBreakProgress = progress
         }
 
-        if (breakTime >= getBlockBreakTime() && gamerulesValid()) {
+        if (breakTime >= blockBreakTime && gamerulesValid()) {
             mob.level().removeBlock(blockTargetPos, false)
             mob.level().levelEvent(1021, blockTargetPos, 0)
             mob.level().levelEvent(2001, blockTargetPos, Block.getId(mob.level().getBlockState(blockTargetPos)))

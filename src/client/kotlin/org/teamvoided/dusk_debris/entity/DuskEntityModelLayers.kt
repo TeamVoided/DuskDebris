@@ -8,6 +8,7 @@ import net.minecraft.client.model.geom.ModelLayerLocation
 import net.minecraft.client.model.geom.builders.CubeDeformation
 import net.minecraft.client.model.geom.builders.LayerDefinition
 import org.teamvoided.dusk_debris.DuskDebris.id
+import org.teamvoided.dusk_debris.entity.ant.model.AntEntityModel
 import org.teamvoided.dusk_debris.entity.bird.render.BirdEntityModel
 import org.teamvoided.dusk_debris.entity.block.CelestalBellBlockEntityRenderer
 import org.teamvoided.dusk_debris.entity.block.treasure_chest.TreasureChestBlockEntityModel
@@ -26,6 +27,8 @@ import org.teamvoided.dusk_debris.entity.tuff_golem.model.TuffGolemCloakModel
 import org.teamvoided.dusk_debris.entity.tuff_golem.model.TuffGolemEntityModel
 
 object DuskEntityModelLayers {
+    val ANT: ModelLayerLocation = registerMain("ant")
+
     val GLOOM: ModelLayerLocation = registerMain("gloomed")
     val GLOOM_EYES: ModelLayerLocation = registerMain("gloomed_eyes")
     val GLOOM_OUTER: ModelLayerLocation = register("gloomed", "outer")
@@ -61,6 +64,7 @@ object DuskEntityModelLayers {
     val CELESTAL_BELL = registerMain("celestal_bell")
 
     fun init() {
+        EntityModelLayerRegistry.registerModelLayer(ANT, AntEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(GLOOM, GloomEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(GLOOM_EYES, GloomEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(GLOOM_INNER_ARMOR, ::createInnerArmor)

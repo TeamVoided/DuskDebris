@@ -66,6 +66,17 @@ object DuskEntities {
     val BLINDBOMB = throwableBomb("blindbomb", ::BlindbombEntity)
     val SMOKEBOMB = throwableBomb("smokebomb", ::SmokebombEntity)
 
+
+    val ANT = register(
+        "ant",
+        0x9A4E44, 0x662920,
+        EntityType.Builder.of(::AntEntity, MobCategory.MONSTER)
+            .sized(0.8f, 0.8f)
+            .eyeHeight(0.6F)
+            .passengerAttachments(0.7f)
+            .clientTrackingRange(8)
+    )
+
     val GLOOM = skeleton("gloomed", 0x222222, 0x222222, ::GloomEntity)
 
     val SKELETON_WOLF = register(
@@ -128,7 +139,10 @@ object DuskEntities {
             .clientTrackingRange(8)
     )
     val TINY_ENEMY_JELLYFISH = register(
-        "tiny_enemy_jellyfish", 0xECEAED, 0x9AF1B2, EntityType.Builder.of(::TinyEnemyJellyfishEntity, MobCategory.AMBIENT)
+        "tiny_enemy_jellyfish",
+        0xECEAED,
+        0x9AF1B2,
+        EntityType.Builder.of(::TinyEnemyJellyfishEntity, MobCategory.AMBIENT)
             .sized(0.5f, 0.5f)
             .eyeHeight(0.25f)
             .passengerAttachments(0.5f)
@@ -198,6 +212,10 @@ object DuskEntities {
     )
 
 
+    private fun EntityType.Builder<out Mob>.sizeEqual(size: Float): EntityType.Builder<out Mob> {
+        return this.sized(size, size).passengerAttachments(size).eyeHeight(size / 2)
+    }
+
     fun <T : Entity> throwableBomb(id: String, factory: EntityType.EntityFactory<T>): EntityType<T> {
         return register(
             id, EntityType.Builder.of(factory, MobCategory.MISC)
@@ -225,6 +243,7 @@ object DuskEntities {
 
     fun init() {
 //        FabricDefaultAttributeRegistry.register(CRAB, CrabEntity.createAttributes().build())
+        FabricDefaultAttributeRegistry.register(ANT, AntEntity.createAttributes().build())
         FabricDefaultAttributeRegistry.register(GLOOM, GloomEntity.createAttributes().build())
         FabricDefaultAttributeRegistry.register(SKELETON_WOLF, SkeletonWolfEntity.createAttributes().build())
         FabricDefaultAttributeRegistry.register(WITHER_SKELETON_WOLF, SkeletonWolfEntity.createAttributes().build())
