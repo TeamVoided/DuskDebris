@@ -173,9 +173,9 @@ class AntEntity(entityType: EntityType<out AntEntity>, level: Level) : Monster(e
                 BURROWING_STATE -> clientDiggingParticles(diggingAnimationState)
                 TUNNELING_STATE -> {
                     val blockState: BlockState = blockStateOn
-                    val x: Double = x + Mth.randomBetween(random, -0.2f, 0.2f).toDouble()
+                    val x: Double = x + Mth.randomBetween(random, -0.4f, 0.4f).toDouble()
                     val y: Double = y
-                    val z: Double = z + Mth.randomBetween(random, -0.2f, 0.2f).toDouble()
+                    val z: Double = z + Mth.randomBetween(random, -0.4f, 0.4f).toDouble()
                     level().addParticle(BlockParticleOption(ParticleTypes.BLOCK, blockState), x, y, z, 0.0, 0.0, 0.0)
                 }
 

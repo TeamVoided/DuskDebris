@@ -21,7 +21,7 @@ class BurrowGoal(private val ant: AntEntity, val level: Level) : Goal() {
     }
 
     override fun canUse(): Boolean {
-        return ant.state == AntEntity.BURROWING_STATE
+        return ant.state == AntEntity.BURROWING_STATE && ant.onGround()
     }
 
     override fun canContinueToUse(): Boolean {
