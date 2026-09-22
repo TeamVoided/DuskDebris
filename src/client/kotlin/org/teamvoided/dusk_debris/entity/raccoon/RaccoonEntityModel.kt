@@ -1,5 +1,6 @@
 package org.teamvoided.dusk_debris.entity.raccoon
 
+import net.minecraft.client.model.AgeableHierarchicalModel
 import net.minecraft.client.model.AgeableListModel
 import net.minecraft.client.model.geom.ModelPart
 import net.minecraft.client.model.geom.PartPose
@@ -9,15 +10,9 @@ import net.minecraft.client.model.geom.builders.MeshDefinition
 import net.minecraft.client.model.geom.builders.PartDefinition
 import org.teamvoided.dusk_debris.entity.RaccoonEntity
 
-class RaccoonEntityModel(val root: ModelPart) : AgeableListModel<RaccoonEntity>() {
+class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<RaccoonEntity>(8f, 3.35f) {
 
-    override fun headParts(): Iterable<ModelPart?> {
-        return listOf()
-    }
-
-    override fun bodyParts(): Iterable<ModelPart?> {
-        return listOf(root)
-    }
+    override fun root(): ModelPart = root
 
     override fun setupAnim(
         entity: RaccoonEntity,
@@ -27,6 +22,7 @@ class RaccoonEntityModel(val root: ModelPart) : AgeableListModel<RaccoonEntity>(
         headYaw: Float,
         headPitch: Float
     ) {
+        root.allParts.forEach(ModelPart::resetPose)
     }
 
     companion object {
