@@ -22,6 +22,10 @@ class ItemTagsProvider(
     }
 
     private fun duskTags() {
+        getOrCreateTagBuilder(DuskItemTags.RACCOON_FOOD)
+            .add(Items.SWEET_BERRIES)
+            .add(Items.GLOW_BERRIES)
+
         getOrCreateTagBuilder(DuskItemTags.TUFF_GOLEM_CLOAK)
             .forceAddTag(ItemTags.WOOL_CARPETS)
             .add(Items.MOSS_CARPET)

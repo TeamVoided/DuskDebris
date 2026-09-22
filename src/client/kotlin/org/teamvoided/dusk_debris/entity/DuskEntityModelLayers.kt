@@ -21,6 +21,7 @@ import org.teamvoided.dusk_debris.entity.jellyfish.volaphyra.model.VolaphyraCore
 import org.teamvoided.dusk_debris.entity.jellyfish.volaphyra.model.VolaphyraMesogleaModel
 import org.teamvoided.dusk_debris.entity.magic.vengeful_spirit.VengefulSpiritModel
 import org.teamvoided.dusk_debris.entity.piffling.model.PifflingPumpkinModel
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntityModel
 import org.teamvoided.dusk_debris.entity.skeleton.gloom.model.GloomEntityModel
 import org.teamvoided.dusk_debris.entity.skeleton.wolf.render.SkeletonWolfEntityModel.Companion.texturedModelData
 import org.teamvoided.dusk_debris.entity.tuff_golem.model.TuffGolemCloakModel
@@ -28,6 +29,7 @@ import org.teamvoided.dusk_debris.entity.tuff_golem.model.TuffGolemEntityModel
 
 object DuskEntityModelLayers {
     val ANT: ModelLayerLocation = registerMain("ant")
+    val RACCOON: ModelLayerLocation = registerMain("raccoon")
 
     val GLOOM: ModelLayerLocation = registerMain("gloomed")
     val GLOOM_EYES: ModelLayerLocation = registerMain("gloomed_eyes")
@@ -65,6 +67,7 @@ object DuskEntityModelLayers {
 
     fun init() {
         EntityModelLayerRegistry.registerModelLayer(ANT, AntEntityModel::texturedModelData)
+        EntityModelLayerRegistry.registerModelLayer(RACCOON, RaccoonEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(GLOOM, GloomEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(GLOOM_EYES, GloomEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(GLOOM_INNER_ARMOR, ::createInnerArmor)
@@ -81,21 +84,39 @@ object DuskEntityModelLayers {
         EntityModelLayerRegistry.registerModelLayer(VOLAPHYRA_MESOGLEA, VolaphyraMesogleaModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(VOLAPHYRA_CORE, VolaphyraCoreModel::texturedModelData)
 
-        EntityModelLayerRegistry.registerModelLayer(TINY_ENEMY_JELLYFISH, TinyEnemyJellyfishCoreModel::texturedModelData)
-        EntityModelLayerRegistry.registerModelLayer(TINY_ENEMY_JELLYFISH_MESOGLEA, TinyEnemyJellyfishModel::texturedModelData)
+        EntityModelLayerRegistry.registerModelLayer(
+            TINY_ENEMY_JELLYFISH,
+            TinyEnemyJellyfishCoreModel::texturedModelData
+        )
+        EntityModelLayerRegistry.registerModelLayer(
+            TINY_ENEMY_JELLYFISH_MESOGLEA,
+            TinyEnemyJellyfishModel::texturedModelData
+        )
 
         EntityModelLayerRegistry.registerModelLayer(VENGEFUL_SPIRIT, VengefulSpiritModel::texturedModelData)
 
-        EntityModelLayerRegistry.registerModelLayer(TREASURE_CHEST, TreasureChestBlockEntityModel::singleTexturedModelData)
-        EntityModelLayerRegistry.registerModelLayer(TREASURE_CHEST_LEFT, TreasureChestBlockEntityModel::leftDoubleTexturedModelData)
-        EntityModelLayerRegistry.registerModelLayer(TREASURE_CHEST_RIGHT, TreasureChestBlockEntityModel::rightDoubleTexturedModelData)
+        EntityModelLayerRegistry.registerModelLayer(
+            TREASURE_CHEST,
+            TreasureChestBlockEntityModel::singleTexturedModelData
+        )
+        EntityModelLayerRegistry.registerModelLayer(
+            TREASURE_CHEST_LEFT,
+            TreasureChestBlockEntityModel::leftDoubleTexturedModelData
+        )
+        EntityModelLayerRegistry.registerModelLayer(
+            TREASURE_CHEST_RIGHT,
+            TreasureChestBlockEntityModel::rightDoubleTexturedModelData
+        )
 
         // DnD
         EntityModelLayerRegistry.registerModelLayer(BIRD, BirdEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(DICE, DiceEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(DUST_BUNNY, DustBunnyEntityModel::texturedModelData)
         EntityModelLayerRegistry.registerModelLayer(PIFFLING_PUMPKIN, PifflingPumpkinModel::texturedModelData)
-        EntityModelLayerRegistry.registerModelLayer(CELESTAL_BELL, CelestalBellBlockEntityRenderer::getTexturedModelData)
+        EntityModelLayerRegistry.registerModelLayer(
+            CELESTAL_BELL,
+            CelestalBellBlockEntityRenderer::getTexturedModelData
+        )
         EntityModelLayerRegistry.registerModelLayer(CHILL_CHARGE, ChillChargeEntityModel::texturedModelData)
     }
 

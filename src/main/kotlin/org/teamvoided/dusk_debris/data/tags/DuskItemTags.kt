@@ -10,6 +10,8 @@ object DuskItemTags {
 
     val TEST = create("test")
 
+    val RACCOON_FOOD = create("raccoon_food")
+
     val TUFF_GOLEM_CLOAK = create("tuff_golem/cloak")
     val TUFF_GOLEM_EYES = create("tuff_golem/eyes")
 

@@ -19,6 +19,7 @@ import org.teamvoided.dusk_debris.entity.jellyfish.volaphyra.VolaphyraEntityRend
 import org.teamvoided.dusk_debris.entity.lazer.LazerEntityRenderer
 import org.teamvoided.dusk_debris.entity.magic.vengeful_spirit.VengefulSpiritRenderer
 import org.teamvoided.dusk_debris.entity.piffling.PifflingPumpkinEntityRenderer
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntityRenderer
 import org.teamvoided.dusk_debris.entity.skeleton.gloom.GloomEntityRenderer
 import org.teamvoided.dusk_debris.entity.skeleton.horse.WitherSkeletonHorseEntityRenderer
 import org.teamvoided.dusk_debris.entity.skeleton.wolf.SkeletonWolfEntityRenderer
@@ -32,6 +33,7 @@ object DuskEntitiesClient {
         register(DuskEntities.LAZER_ENTITY, ::LazerEntityRenderer)
         register(DuskEntities.GUNPOWDER_BARREL, ::GunpowderBarrelEntityRenderer)
         register(DuskEntities.ANT, ::AntEntityRenderer)
+        register(DuskEntities.RACCOON, ::RaccoonEntityRenderer)
         register(DuskEntities.GLOOM, ::GloomEntityRenderer)
         register(DuskEntities.SKELETON_WOLF, ::SkeletonWolfEntityRenderer)
         register(DuskEntities.WITHER_SKELETON_WOLF, ::WitherSkeletonWolfEntityRenderer)

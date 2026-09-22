@@ -13,6 +13,7 @@ import org.teamvoided.dusk_debris.data.gen.providers.english_translation.English
 import org.teamvoided.dusk_debris.data.gen.providers.loot_table.EntityLootTableProvider
 import org.teamvoided.dusk_debris.data.gen.providers.models.ModelProvider
 import org.teamvoided.dusk_debris.data.gen.providers.variants.PaintingVariants
+import org.teamvoided.dusk_debris.data.gen.providers.variants.RaccoonVariants
 import org.teamvoided.dusk_debris.data.gen.providers.variants.SnifferVariants
 import org.teamvoided.dusk_debris.data.gen.tags.*
 import org.teamvoided.dusk_debris.data.gen.world.gen.*
@@ -66,6 +67,7 @@ class DuskDebrisData : DataGeneratorEntrypoint {
 
         gen.add(Registries.PAINTING_VARIANT, PaintingVariants::bootstrap)
         gen.add(DuskRegistryKeys.SNIFFER_VARIANT, SnifferVariants::bootstrap)
+        gen.add(DuskRegistryKeys.RACCOON_VARIANT, RaccoonVariants::bootstrap)
         gen.add(DuskRegistryKeys.FOG_MODIFIER, FogModifiers::bootstrap)
         gen.add(DuskRegistryKeys.SPELL, Spells::bootstrap)
         println("End build registry")

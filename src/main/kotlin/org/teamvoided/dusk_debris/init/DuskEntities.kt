@@ -77,6 +77,15 @@ object DuskEntities {
             .clientTrackingRange(8)
     )
 
+    val RACCOON = register(
+        "raccoon",
+        0x536174, 0x191d22,
+        EntityType.Builder.of(::RaccoonEntity, MobCategory.CREATURE)
+            .sized(0.6f, 0.7f)
+            .eyeHeight(0.4F)
+            .clientTrackingRange(8)
+    )
+
     val GLOOM = skeleton("gloomed", 0x222222, 0x222222, ::GloomEntity)
 
     val SKELETON_WOLF = register(
@@ -244,6 +253,7 @@ object DuskEntities {
     fun init() {
 //        FabricDefaultAttributeRegistry.register(CRAB, CrabEntity.createAttributes().build())
         FabricDefaultAttributeRegistry.register(ANT, AntEntity.createAttributes().build())
+        FabricDefaultAttributeRegistry.register(RACCOON, RaccoonEntity.createAttributes().build())
         FabricDefaultAttributeRegistry.register(GLOOM, GloomEntity.createAttributes().build())
         FabricDefaultAttributeRegistry.register(SKELETON_WOLF, SkeletonWolfEntity.createAttributes().build())
         FabricDefaultAttributeRegistry.register(WITHER_SKELETON_WOLF, SkeletonWolfEntity.createAttributes().build())
