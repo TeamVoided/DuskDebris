@@ -14,7 +14,10 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier
-import net.minecraft.world.entity.ai.goal.*
+import net.minecraft.world.entity.ai.goal.BreedGoal
+import net.minecraft.world.entity.ai.goal.FloatGoal
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
 import net.minecraft.world.entity.animal.Animal
 import net.minecraft.world.entity.animal.Fox
 import net.minecraft.world.entity.item.ItemEntity
@@ -22,24 +25,23 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.gameevent.GameEvent
 import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.data.tags.DuskItemTags
-import org.teamvoided.dusk_debris.entity.goal.raccoon.ClaimBarrelGoal
-import org.teamvoided.dusk_debris.entity.goal.raccoon.GetFoodFromBarrelGoal
-import org.teamvoided.dusk_debris.entity.goal.raccoon.PickBerriesGoal
-import org.teamvoided.dusk_debris.entity.goal.raccoon.RaccoonSearchForItemsGoal
-import org.teamvoided.dusk_debris.entity.goal.raccoon.StoreItemsGoal
-import org.teamvoided.dusk_debris.entity.goal.raccoon.WashFoodGoal
+import org.teamvoided.dusk_debris.entity.goal.raccoon.*
 import org.teamvoided.dusk_debris.init.DuskAttachmentTypes
 import org.teamvoided.dusk_debris.init.DuskEntities
 import org.teamvoided.dusk_debris.init.DuskRegistryKeys
+import kotlin.math.min
 
 class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, world),
     VariantHolder<Holder<RaccoonVariant>> {
-
     var eatTicks = 0
     var hunger = 0
     var hasWashedFood = false
+
+    val washingAnimationState: AnimationState = AnimationState()
+    val sneezingAnimationState: AnimationState = AnimationState()
 
     init {
         setCanPickUpLoot(true)
@@ -51,17 +53,19 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         goalSelector.addGoal(7, ClaimBarrelGoal(this, 1.2, 12))
         goalSelector.addGoal(7, WashFoodGoal(this, 1.2, 12))
         goalSelector.addGoal(8, PickBerriesGoal(this, 1.2, 12, 1))
-        goalSelector.addGoal(8, GetFoodFromBarrelGoal(this, 1.2, 12))
-        goalSelector.addGoal(9, WaterAvoidingRandomStrollGoal(this, 1.0))
+        goalSelector.addGoal(8, GetFoodFromBarrelGoal(this, 1.2, 0))
+        goalSelector.addGoal(9, RaccoonWanderGoal(this, 1.0))
         goalSelector.addGoal(9, RaccoonSearchForItemsGoal(this))
-        goalSelector.addGoal(9, StoreItemsGoal(this, 1.2, 12))
+        goalSelector.addGoal(9, StoreItemsGoal(this, 1.2, 0))
         goalSelector.addGoal(10, LookAtPlayerGoal(this, Player::class.java, 8F))
         goalSelector.addGoal(10, RandomLookAroundGoal(this))
+        goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))
     }
 
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
         super.defineSynchedData(builder)
         builder.define(BARREL_POS, DEFAULT_BARREL_POS)
+        builder.define(DATA_STATE, IDLE_STATE)
     }
 
     override fun addAdditionalSaveData(tag: CompoundTag) {
@@ -85,6 +89,9 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         eatTicks = tag.getInt("eat_ticks")
         hasWashedFood = tag.getBoolean("has_washed_food")
 
+        if (tag.contains("state")) {
+            state = tag.getInt("state")
+        }
         if (tag.contains("barrel_pos", Tag.TAG_COMPOUND.toInt())) {
             val barrelPosTag = tag.getCompound("barrel_pos")
             barrelPos = BlockPos(barrelPosTag.getInt("x"), barrelPosTag.getInt("y"), barrelPosTag.getInt("z"))
@@ -95,18 +102,25 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         super.tick()
         if (!level().isClientSide) {
             if (barrelPos != DEFAULT_BARREL_POS && !level().getBlockState(barrelPos).`is`(Blocks.BARREL)) {
-                barrelPos = DEFAULT_BARREL_POS
-                level().broadcastEntityEvent(this, EntityEvent.VILLAGER_ANGRY)
+                forgetBarrel()
             }
         }
     }
 
     override fun aiStep() {
         if (!level().isClientSide && isAlive && isEffectiveAi) {
+            if (age % 400 == 0 && hunger > 0) {
+                hunger--
+                if (health < maxHealth && !isStarving()) {
+                    hunger -= 2
+                    heal(0.5f)
+                }
+            }
+
             val heldItem = getHeldItem()
             if (hasWashedFood && canEat(heldItem) && target == null && onGround() && !isSleeping) {
                 eatTicks++
-                if (eatTicks >= 40) {
+                if (eatTicks >= getEatTime(heldItem)) {
                     val remainingStack = heldItem.finishUsingItem(level(), this)
                     if (!remainingStack.isEmpty) {
                         if (!remainingStack.`is`(heldItem.item)) {
@@ -117,7 +131,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
                     }
 
                     eatTicks = 0
-                    hunger += heldItem.get(DataComponents.FOOD)?.nutrition ?: 0
+                    hunger += addHunger(heldItem)
                 } else if (random.nextFloat() < 0.1F) {
                     playSound(getEatingSound(heldItem), 1F, 1F)
                     level().broadcastEntityEvent(this, EntityEvent.FOX_EAT)
@@ -128,15 +142,26 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
     }
 
     fun canEat(stack: ItemStack): Boolean {
-        val properties = stack.get(DataComponents.FOOD)
-        return isFood(stack) && (isStarving() || hunger <= MAX_HUNGER - (properties?.nutrition ?: 0))
+        val food = stack.get(DataComponents.FOOD)
+        return isFood(stack) && (isStarving() || hunger <= MAX_HUNGER - (food?.nutrition ?: 0))
     }
 
-    fun isStarving(): Boolean {
-        return hunger < 5
+    fun getEatTime(heldItem: ItemStack): Int {
+        val time = heldItem.get(DataComponents.FOOD)?.eatSeconds
+        if (time != null) return (time * 20).toInt()
+        return 40
     }
+
+    fun addHunger(heldItem: ItemStack): Int {
+        val food = heldItem.get(DataComponents.FOOD)
+        if (food != null) return (min(MAX_HUNGER, hunger + food.nutrition) - hunger) + food.saturation.toInt()
+        return 0
+    }
+
+    fun isStarving(): Boolean = hunger < 5
 
     override fun handleEntityEvent(b: Byte) {
+        super.handleEntityEvent(b)
         when (b) {
             EntityEvent.VILLAGER_HAPPY -> {
                 for (i in 0..5) {
@@ -254,8 +279,23 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         return stack.`is`(DuskItemTags.RACCOON_FOOD)
     }
 
-    fun canMove(): Boolean {
-        return !isSleeping // TODO add `not sitting` check
+    fun canMove(): Boolean = state <= SNEEZE_STATE
+
+    override fun onSyncedDataUpdated(entityDataAccessor: EntityDataAccessor<*>?) {
+        if (DATA_STATE == entityDataAccessor) {
+            resetAnimations()
+            when (state) {
+                IDLE_STATE, SITTING_STATE, SLEEPING_STATE -> {} //these are poses, not animations. done in model.
+                SNEEZE_STATE -> sneezingAnimationState.startIfStopped(tickCount)
+                WASHING_STATE -> washingAnimationState.startIfStopped(tickCount)
+            }
+        }
+        super.onSyncedDataUpdated(entityDataAccessor)
+    }
+
+    fun resetAnimations() {
+        sneezingAnimationState.stop()
+        washingAnimationState.stop()
     }
 
     override fun getBreedOffspring(level: ServerLevel, entity: AgeableMob): AgeableMob? {
@@ -278,17 +318,56 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
             .getOrThrow(getAttachedOrCreate(DuskAttachmentTypes.RACCOON_VARIANT))
     }
 
+    fun setStateIdle() {
+        state = IDLE_STATE
+    }
+
+    fun setStateSitting() {
+        this.gameEvent(GameEvent.ENTITY_MOUNT)
+        state = SITTING_STATE
+    }
+
+    fun setStateSleeping() {
+        this.gameEvent(GameEvent.ENTITY_ACTION)
+        state = SLEEPING_STATE
+    }
+
+    fun setStateWashing() {
+        this.gameEvent(GameEvent.ENTITY_ACTION)
+        state = WASHING_STATE
+    }
+
+    fun forgetBarrel() {
+        barrelPos = DEFAULT_BARREL_POS
+        level().broadcastEntityEvent(this, EntityEvent.VILLAGER_ANGRY)
+    }
+
+    var state: Int
+        get() = entityData[DATA_STATE]
+        private set(state) = entityData.set(DATA_STATE, state)
+
     var barrelPos: BlockPos
-        get() = entityData.get(BARREL_POS)
+        get() = entityData[BARREL_POS]
         set(value) = entityData.set(BARREL_POS, value)
 
     companion object {
-        val BARREL_POS: EntityDataAccessor<BlockPos> =
+        private val DATA_STATE: EntityDataAccessor<Int> =
+            SynchedEntityData.defineId(RaccoonEntity::class.java, EntityDataSerializers.INT)
+        private val BARREL_POS: EntityDataAccessor<BlockPos> =
             SynchedEntityData.defineId(RaccoonEntity::class.java, EntityDataSerializers.BLOCK_POS)
         val DEFAULT_BARREL_POS = BlockPos(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE)
         const val MAX_HUNGER = 20
 
-        fun createAttributes(): AttributeSupplier.Builder{
+        const val WANDER_RANGE = 32 * 32
+        const val BARREL_FORGET_RANGE = 64 * 64
+
+        const val IDLE_STATE = 0
+        const val SNEEZE_STATE = 1
+        const val SITTING_STATE = 2
+        const val SLEEPING_STATE = 3
+        const val WASHING_STATE = 4
+
+        fun createAttributes(): AttributeSupplier.Builder {
             return Fox.createAttributes()
         }
     }

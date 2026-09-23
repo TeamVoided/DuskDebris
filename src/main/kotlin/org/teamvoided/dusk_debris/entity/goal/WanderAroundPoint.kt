@@ -1,4 +1,4 @@
-package org.teamvoided.dusks_and_dungeons.entity.goal
+package org.teamvoided.dusk_debris.entity.goal
 
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.PathfinderMob

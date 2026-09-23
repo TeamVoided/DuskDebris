@@ -59,9 +59,11 @@ abstract class MoveToBarrelGoal(val raccoon: RaccoonEntity, speed: Double, range
 
     fun findHomeBarrel(): Boolean {
         val pos = raccoon.barrelPos
-        if (raccoon.distanceToSqr(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5) < 40) {
+        if (raccoon.distanceToSqr(pos.center) <= RaccoonEntity.BARREL_FORGET_RANGE) {
             blockPos = pos
             return true
+        } else {
+            raccoon.forgetBarrel()
         }
         return false
     }

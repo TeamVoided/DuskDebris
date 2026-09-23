@@ -8,6 +8,7 @@ import net.minecraft.world.entity.EntityEvent
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.entity.RaccoonEntity
 
@@ -16,7 +17,7 @@ class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : Move
     private var timer: Int = 0
 
     override fun isValidTarget(world: LevelReader, pos: BlockPos): Boolean {
-        return world.getBlockState(pos).`is`(Blocks.WATER)
+        return world.getFluidState(pos).`is`(Fluids.WATER)
     }
 
     override fun acceptedDistance(): Double = 5.0
@@ -24,9 +25,8 @@ class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : Move
     override fun tick() {
         if (isReachedTarget) {
             timer++
-            // TODO start anim
             if (timer >= 200) {
-                // TODO end anim
+                raccoon.setStateIdle()
                 raccoon.hasWashedFood = true
             }
 
@@ -39,13 +39,15 @@ class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : Move
     }
 
     override fun canContinueToUse(): Boolean {
-        return timer <= 200 && super.canContinueToUse()
+        return !raccoon.hasWashedFood && super.canContinueToUse()
     }
 
-    override fun canUse(): Boolean = !raccoon.isSleeping && raccoon.canEat(raccoon.getHeldItem()) && super.canUse()
+    override fun canUse(): Boolean =
+        !raccoon.hasWashedFood && raccoon.canMove() && raccoon.canEat(raccoon.getHeldItem()) && super.canUse()
 
     override fun start() {
         timer = 0
+        raccoon.setStateWashing()
         super.start()
     }
 }

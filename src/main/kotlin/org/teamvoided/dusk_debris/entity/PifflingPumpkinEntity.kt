@@ -22,7 +22,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.ServerLevelAccessor
-import org.teamvoided.dusks_and_dungeons.entity.goal.WanderAroundPoint
+import org.teamvoided.dusk_debris.entity.goal.WanderAroundPoint
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
