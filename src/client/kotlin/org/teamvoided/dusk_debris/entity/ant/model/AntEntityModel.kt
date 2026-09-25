@@ -8,7 +8,6 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder
 import net.minecraft.client.model.geom.builders.LayerDefinition
 import net.minecraft.client.model.geom.builders.MeshDefinition
 import net.minecraft.util.Mth
-import org.joml.Vector3f
 import org.teamvoided.dusk_debris.entity.AntEntity
 import org.teamvoided.dusk_debris.entity.ant.animation.AntAnimations
 
@@ -37,7 +36,7 @@ class AntEntityModel(private val root: ModelPart) : HierarchicalModel<AntEntity>
         entity: AntEntity,
         limbAngle: Float,
         limbDistance: Float,
-        tickProgress: Float,
+        ageInTicks: Float,
         headYaw: Float,
         headPitch: Float
     ) {
@@ -49,13 +48,13 @@ class AntEntityModel(private val root: ModelPart) : HierarchicalModel<AntEntity>
         head.xRot = headPitch * (Math.PI.toFloat() / 180f)
         head.yRot = headYaw * (Math.PI.toFloat() / 180f)
         animateWalk(AntAnimations.WALK, limbAngle, limbDistance, 9f, 1f)
-        swayers(limbAngle, limbDistance, tickProgress)
-        animate(entity.emergeAnimationState, AntAnimations.EMERGE, tickProgress, 1f)
-        animate(entity.diggingAnimationState, AntAnimations.DIG, tickProgress, 1f)
+        swayers(limbAngle, limbDistance, ageInTicks)
+        animate(entity.emergeAnimationState, AntAnimations.EMERGE, ageInTicks)
+        animate(entity.diggingAnimationState, AntAnimations.DIG, ageInTicks)
     }
 
-    private fun swayers(limbAngle: Float, limbDistance: Float, tickProgress: Float) {
-        val cosin: Float = tickProgress * 0.1f + limbAngle * 0.5f
+    private fun swayers(limbAngle: Float, limbDistance: Float, ageInTicks: Float) {
+        val cosin: Float = ageInTicks * 0.1f + limbAngle * 0.5f
         val mult: Float = 0.5f + limbDistance * 0.04f
         rightAntenna.xRot = Mth.cos(cosin) * mult
         leftAntenna.xRot = Mth.cos(cosin * 1.2f) * mult

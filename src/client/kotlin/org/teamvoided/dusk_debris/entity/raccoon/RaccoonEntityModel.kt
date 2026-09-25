@@ -1,16 +1,26 @@
 package org.teamvoided.dusk_debris.entity.raccoon
 
+import net.minecraft.client.animation.definitions.SnifferAnimation
 import net.minecraft.client.model.AgeableHierarchicalModel
-import net.minecraft.client.model.AgeableListModel
 import net.minecraft.client.model.geom.ModelPart
 import net.minecraft.client.model.geom.PartPose
 import net.minecraft.client.model.geom.builders.CubeListBuilder
 import net.minecraft.client.model.geom.builders.LayerDefinition
 import net.minecraft.client.model.geom.builders.MeshDefinition
-import net.minecraft.client.model.geom.builders.PartDefinition
 import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import kotlin.math.sin
 
 class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<RaccoonEntity>(8f, 3.35f) {
+    val raccoon: ModelPart = root.getChild("raccoon")
+    val body: ModelPart = this.raccoon.getChild("body")
+    val head: ModelPart = this.body.getChild("head")
+    val tail: ModelPart = this.body.getChild("tail")
+    val frontLegs: ModelPart = this.raccoon.getChild("front_legs")
+    val legFrontRight: ModelPart = this.frontLegs.getChild("leg_front_right")
+    val legFrontLeft: ModelPart = this.frontLegs.getChild("leg_front_left")
+    val backLegs: ModelPart = this.raccoon.getChild("back_legs")
+    val legBackRight: ModelPart = this.backLegs.getChild("leg_back_right")
+    val legBackLeft: ModelPart = this.backLegs.getChild("leg_back_left")
 
     override fun root(): ModelPart = root
 
@@ -18,72 +28,113 @@ class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<Raccoon
         entity: RaccoonEntity,
         limbAngle: Float,
         limbDistance: Float,
-        animationProgress: Float,
-        headYaw: Float,
+        ageInTicks: Float,
+        netHeadYaw: Float,
         headPitch: Float
     ) {
         root.allParts.forEach(ModelPart::resetPose)
+        head.xRot = headPitch //* (Math.PI.toFloat() / 180f)
+        head.yRot = netHeadYaw// * (Math.PI.toFloat() / 180f)
+        tail(entity, ageInTicks)
+        animateWalk(RaccoonAnimation.WALK, limbAngle, limbDistance, 9f, 1f)
+        animate(entity.washingAnimationState, RaccoonAnimation.RUMMAGE, ageInTicks)
+        animate(entity.sneezingAnimationState, RaccoonAnimation.HEAD_SHAKE, ageInTicks)
+
+        if (entity.hasCustomName() && "roomba" == entity.name.string.lowercase())
+            applyStatic(RaccoonAnimation.ROOMBA_TRANSFORM)
+        if (young)
+            applyStatic(RaccoonAnimation.BABY_TRANSFORM)
     }
+
+    private fun tail(entity: RaccoonEntity, ageInTicks: Float) {
+        val state = entity.state
+        when (state) {
+            RaccoonEntity.IDLE_STATE, RaccoonEntity.SNEEZE_STATE -> if (ageInTicks % 100 < 10)
+                tail.yRot += sin(ageInTicks * Math.PI.toFloat())
+
+            RaccoonEntity.SITTING_STATE, RaccoonEntity.SLEEPING_STATE -> {} /* no reaction */
+            RaccoonEntity.WASHING_STATE -> { /* excited ones */
+                if (ageInTicks % 20 < 10) {
+                    tail.yRot += sin((ageInTicks * Math.PI.toFloat()) / 20f)
+                } else {
+                    tail.yRot += sin((ageInTicks / 2 * Math.PI.toFloat()) / 20f)
+                }
+            }
+        }
+    }
+
 
     companion object {
         val texturedModelData: LayerDefinition
             get() {
-                val modelData = MeshDefinition()
-                val modelPartData = modelData.root
+                val meshDefinition = MeshDefinition()
+                val partDefinition = meshDefinition.root
 
-                val body: PartDefinition = modelPartData.addOrReplaceChild(
+                val raccoon = partDefinition.addOrReplaceChild(
+                    "raccoon",
+                    CubeListBuilder.create(),
+                    PartPose.offset(0f, 24f, 0f)
+                )
+
+                val body = raccoon.addOrReplaceChild(
                     "body",
-                    CubeListBuilder().texOffs(19, 12)
-                        .addBox(-4F, -6F, -4F, 8F, 11F, 8F),
-                    PartPose.offsetAndRotation(0F, 17F, 3F, 1.5708f, 0F, 0F)
+                    CubeListBuilder.create().texOffs(26, 0)
+                        .addBox(-4f, -3f, -6f, 8f, 8f, 11f),
+                    PartPose.offset(0f, -8f, 3f)
                 )
 
-                body.addOrReplaceChild(
+                val head = body.addOrReplaceChild(
                     "head",
-                    CubeListBuilder().texOffs(1, 5)
-                        .addBox(-3F, -2F, -5F, 6F, 5F, 5F)
-                        .texOffs(3, 1).addBox(-3F, -4F, -4F, 2F, 2F, 1F)
-                        .texOffs(11, 1).addBox(1F, -4F, -4F, 2F, 2F, 1F)
-                        .texOffs(6, 16).addBox(-1F, 1F, -7F, 2F, 2F, 2F),
-                    PartPose.offsetAndRotation(0F, -6F, 0F, -1.5708f, 0F, 0F)
+                    CubeListBuilder.create().texOffs(1, 5)
+                        .addBox(-3f, -4f, -5f, 6f, 5f, 5f)
+                        .texOffs(3, 1).addBox(-3f, -6f, -4f, 2f, 2f, 1f)
+                        .texOffs(11, 1).addBox(1f, -6f, -4f, 2f, 2f, 1f)
+                        .texOffs(1, 17).addBox(-1f, -1f, -7f, 2f, 2f, 2f),
+                    PartPose.offset(0f, 3f, -6f)
                 )
 
-                body.addOrReplaceChild(
+                val tail = body.addOrReplaceChild(
                     "tail",
-                    CubeListBuilder().texOffs(47, 1)
-                        .addBox(-2F, -1.9239f, -2.3827f, 4F, 11F, 4F),
-                    PartPose.offsetAndRotation(0F, 6F, 1F, -0.3927f, 0F, 0F)
+                    CubeListBuilder.create().texOffs(0, 17)
+                        .addBox(-2f, -2f, -1f, 4f, 4f, 11f),
+                    PartPose.offsetAndRotation(0f, 0f, 5f, -0.3927f, 0f, 0f)
                 )
 
-                body.addOrReplaceChild(
+                val frontLegs =
+                    raccoon.addOrReplaceChild("front_legs", CubeListBuilder.create(), PartPose.offset(0f, -8f, 3f))
+
+                val legFrontRight = frontLegs.addOrReplaceChild(
                     "leg_front_right",
-                    CubeListBuilder().texOffs(1, 25)
-                        .addBox(-1F, -1F, -1F, 2F, 4F, 2F),
-                    PartPose.offsetAndRotation(-2F, -4F, -4F, -1.5708f, 0F, 0F)
+                    CubeListBuilder.create().texOffs(19, 3)
+                        .addBox(-1f, -1f, -1f, 2f, 4f, 2f),
+                    PartPose.offset(-2f, 5f, -4f)
                 )
 
-                body.addOrReplaceChild(
+                val legFrontLeft = frontLegs.addOrReplaceChild(
                     "leg_front_left",
-                    CubeListBuilder().texOffs(10, 25)
-                        .addBox(-1F, -1F, -1F, 2F, 4F, 2F),
-                    PartPose.offsetAndRotation(2F, -4F, -4F, -1.5708f, 0F, 0F)
+                    CubeListBuilder.create().texOffs(28, 3)
+                        .addBox(-1f, -1f, -1f, 2f, 4f, 2f),
+                    PartPose.offset(2f, 5f, -4f)
                 )
 
-                modelPartData.addOrReplaceChild(
+                val backLegs =
+                    raccoon.addOrReplaceChild("back_legs", CubeListBuilder.create(), PartPose.offset(0f, -3f, 6f))
+
+                val legBackRight = backLegs.addOrReplaceChild(
                     "leg_back_right",
-                    CubeListBuilder().texOffs(1, 25)
-                        .addBox(-1F, -1F, -1F, 2F, 4F, 2F),
-                    PartPose.offset(-2F, 21F, 6F)
+                    CubeListBuilder.create().texOffs(19, 3)
+                        .addBox(-1f, -1f, -1f, 2f, 4f, 2f),
+                    PartPose.offset(-2f, 0f, 0f)
                 )
 
-                modelPartData.addOrReplaceChild(
+                val legBackLeft = backLegs.addOrReplaceChild(
                     "leg_back_left",
-                    CubeListBuilder().texOffs(10, 25)
-                        .addBox(-1F, -1F, -1F, 2F, 4F, 2F),
-                    PartPose.offset(2F, 21F, 6F)
+                    CubeListBuilder.create().texOffs(28, 3)
+                        .addBox(-1f, -1f, -1f, 2f, 4f, 2f),
+                    PartPose.offset(2f, 0f, 0f)
                 )
 
-                return LayerDefinition.create(modelData, 64, 32)
+                return LayerDefinition.create(meshDefinition, 64, 32)
             }
     }
 }

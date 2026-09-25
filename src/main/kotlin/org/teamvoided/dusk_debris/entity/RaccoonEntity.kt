@@ -73,7 +73,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         tag.putInt("hunger", hunger)
         tag.putInt("eat_ticks", eatTicks)
         tag.putBoolean("has_wash_food", hasWashedFood)
-
+        tag.putInt("state", state)
         if (barrelPos != DEFAULT_BARREL_POS) {
             val barrelPosTag = CompoundTag()
             barrelPosTag.putInt("x", barrelPos.x)
@@ -344,7 +344,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
 
     var state: Int
         get() = entityData[DATA_STATE]
-        private set(state) = entityData.set(DATA_STATE, state)
+        set(state) = entityData.set(DATA_STATE, state)
 
     var barrelPos: BlockPos
         get() = entityData[BARREL_POS]
@@ -366,6 +366,13 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         const val SITTING_STATE = 2
         const val SLEEPING_STATE = 3
         const val WASHING_STATE = 4
+        val STATES = listOf(        //this is used for the command
+            "Idle" to IDLE_STATE,
+            "Sneeze" to SNEEZE_STATE,
+            "Sitting" to SITTING_STATE,
+            "Sleeping" to SLEEPING_STATE,
+            "washing" to WASHING_STATE
+        )
 
         fun createAttributes(): AttributeSupplier.Builder {
             return Fox.createAttributes()
