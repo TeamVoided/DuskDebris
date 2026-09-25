@@ -45,6 +45,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
 
     init {
         setCanPickUpLoot(true)
+        shouldDropLoot()
     }
 
     override fun registerGoals() {
@@ -85,13 +86,10 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
 
     override fun readAdditionalSaveData(tag: CompoundTag) {
         super.readAdditionalSaveData(tag)
-        hunger = tag.getInt("hunger")
-        eatTicks = tag.getInt("eat_ticks")
-        hasWashedFood = tag.getBoolean("has_washed_food")
-
-        if (tag.contains("state")) {
-            state = tag.getInt("state")
-        }
+        if (tag.contains("hunger")) hunger = tag.getInt("hunger")
+        if (tag.contains("eat_ticks")) eatTicks = tag.getInt("eat_ticks")
+        if (tag.contains("has_washed_food")) hasWashedFood = tag.getBoolean("has_washed_food")
+        if (tag.contains("state")) state = tag.getInt("state")
         if (tag.contains("barrel_pos", Tag.TAG_COMPOUND.toInt())) {
             val barrelPosTag = tag.getCompound("barrel_pos")
             barrelPos = BlockPos(barrelPosTag.getInt("x"), barrelPosTag.getInt("y"), barrelPosTag.getInt("z"))
@@ -109,16 +107,8 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
 
     override fun aiStep() {
         if (!level().isClientSide && isAlive && isEffectiveAi) {
-            if (age % 400 == 0 && hunger > 0) {
-                hunger--
-                if (health < maxHealth && !isStarving()) {
-                    hunger -= 2
-                    heal(0.5f)
-                }
-            }
-
             val heldItem = getHeldItem()
-            if (hasWashedFood && canEat(heldItem) && target == null && onGround() && !isSleeping) {
+            if (hasWashedFood && canEat(heldItem) && target == null && onGround() && canMove()) {
                 eatTicks++
                 if (eatTicks >= getEatTime(heldItem)) {
                     val remainingStack = heldItem.finishUsingItem(level(), this)
@@ -126,15 +116,23 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
                         if (!remainingStack.`is`(heldItem.item)) {
                             hasWashedFood = false
                         }
-
                         setItemSlot(EquipmentSlot.MAINHAND, remainingStack)
                     }
+                    playSound(getEatingSound(heldItem), 1F, 0F)
+                    level().broadcastEntityEvent(this, EntityEvent.FOX_EAT)
 
                     eatTicks = 0
-                    hunger += addHunger(heldItem)
+                    hunger = addFood(heldItem)
                 } else if (random.nextFloat() < 0.1F) {
                     playSound(getEatingSound(heldItem), 1F, 1F)
                     level().broadcastEntityEvent(this, EntityEvent.FOX_EAT)
+                }
+            }
+            if (tickCount % 400 == 0 && hunger > 0) {
+                hunger--
+                if (health < maxHealth && !isStarving()) {
+                    hunger -= 2
+                    heal(0.5f)
                 }
             }
         }
@@ -152,9 +150,9 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         return 40
     }
 
-    fun addHunger(heldItem: ItemStack): Int {
+    fun addFood(heldItem: ItemStack): Int {
         val food = heldItem.get(DataComponents.FOOD)
-        if (food != null) return (min(MAX_HUNGER, hunger + food.nutrition) - hunger) + food.saturation.toInt()
+        if (food != null) return min(MAX_HUNGER, hunger + food.nutrition) + food.saturation.toInt()
         return 0
     }
 

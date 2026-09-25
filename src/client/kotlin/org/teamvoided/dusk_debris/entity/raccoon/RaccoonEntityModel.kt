@@ -8,6 +8,8 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder
 import net.minecraft.client.model.geom.builders.LayerDefinition
 import net.minecraft.client.model.geom.builders.MeshDefinition
 import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.util.Utils.vec3d
+import org.teamvoided.dusk_debris.util.sendMessageIngame
 import kotlin.math.sin
 
 class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<RaccoonEntity>(8f, 3.35f) {
@@ -33,31 +35,36 @@ class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<Raccoon
         headPitch: Float
     ) {
         root.allParts.forEach(ModelPart::resetPose)
-        head.xRot = headPitch //* (Math.PI.toFloat() / 180f)
-        head.yRot = netHeadYaw// * (Math.PI.toFloat() / 180f)
+        head.xRot = headPitch * (Math.PI.toFloat() / 180f)
+        head.yRot = netHeadYaw * (Math.PI.toFloat() / 180f)
         tail(entity, ageInTicks)
-        animateWalk(RaccoonAnimation.WALK, limbAngle, limbDistance, 9f, 1f)
+        animateWalk(RaccoonAnimation.WALK, limbAngle, limbDistance, 3f, 1f)
         animate(entity.washingAnimationState, RaccoonAnimation.RUMMAGE, ageInTicks)
         animate(entity.sneezingAnimationState, RaccoonAnimation.HEAD_SHAKE, ageInTicks)
 
+        if (entity.state == RaccoonEntity.SITTING_STATE)
+            applyStatic(RaccoonAnimation.POSE_SIT)
+        else if (entity.state == RaccoonEntity.SLEEPING_STATE)
+            applyStatic(RaccoonAnimation.POSE_SLEEP)
+
         if (entity.hasCustomName() && "roomba" == entity.name.string.lowercase())
             applyStatic(RaccoonAnimation.ROOMBA_TRANSFORM)
-        if (young)
-            applyStatic(RaccoonAnimation.BABY_TRANSFORM)
+        //if (young)
+        //    applyStatic(RaccoonAnimation.BABY_TRANSFORM)
     }
 
     private fun tail(entity: RaccoonEntity, ageInTicks: Float) {
         val state = entity.state
         when (state) {
             RaccoonEntity.IDLE_STATE, RaccoonEntity.SNEEZE_STATE -> if (ageInTicks % 100 < 10)
-                tail.yRot += sin(ageInTicks * Math.PI.toFloat())
+                tail.yRot += sin(ageInTicks * (Math.PI.toFloat() / 5f))
 
             RaccoonEntity.SITTING_STATE, RaccoonEntity.SLEEPING_STATE -> {} /* no reaction */
             RaccoonEntity.WASHING_STATE -> { /* excited ones */
-                if (ageInTicks % 20 < 10) {
-                    tail.yRot += sin((ageInTicks * Math.PI.toFloat()) / 20f)
+                if (ageInTicks % 30 < 10) {
+                    tail.yRot += sin(ageInTicks * (Math.PI.toFloat() / 5f))
                 } else {
-                    tail.yRot += sin((ageInTicks / 2 * Math.PI.toFloat()) / 20f)
+                    tail.yRot += sin((ageInTicks % 30) * (Math.PI.toFloat() / -10f))
                 }
             }
         }

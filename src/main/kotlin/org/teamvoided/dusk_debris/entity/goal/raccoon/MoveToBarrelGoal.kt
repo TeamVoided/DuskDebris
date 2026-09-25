@@ -2,6 +2,7 @@ package org.teamvoided.dusk_debris.entity.goal.raccoon
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal
@@ -9,6 +10,7 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.BarrelBlock
 import net.minecraft.world.level.block.Blocks
 import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import kotlin.jvm.optionals.getOrNull
 
 const val MAX_INTERACTION_DELAY = 20
 
@@ -40,21 +42,22 @@ abstract class MoveToBarrelGoal(val raccoon: RaccoonEntity, speed: Double, range
     abstract fun onTargetReached()
 
     fun playBarrelSound(opening: Boolean) {
-//        val vec3i = (raccoon.level().getBlockState(blockPos).getValue(BarrelBlock.FACING) as Direction).normal
-//        val x: Double = blockPos.x + 0.5 + vec3i.x / 2.0
-//        val y: Double = blockPos.y + 0.5 + vec3i.y / 2.0
-//        val z: Double = blockPos.z + 0.5 + vec3i.z / 2.0
-//
-//        raccoon.level().playSound(
-//            null,
-//            x,
-//            y,
-//            z,
-//            if (opening) SoundEvents.BARREL_OPEN else SoundEvents.BARREL_CLOSE,
-//            SoundSource.BLOCKS,
-//            0.5F,
-//            raccoon.random.nextFloat() * 0.1F + 0.9F
-//        )
+        val vec3i =
+            raccoon.level().getBlockState(blockPos).getOptionalValue(BarrelBlock.FACING).getOrNull()?.normal ?: return
+        val x: Double = blockPos.x + 0.5 + vec3i.x / 2.0
+        val y: Double = blockPos.y + 0.5 + vec3i.y / 2.0
+        val z: Double = blockPos.z + 0.5 + vec3i.z / 2.0
+
+        raccoon.level().playSound(
+            null,
+            x,
+            y,
+            z,
+            if (opening) SoundEvents.BARREL_OPEN else SoundEvents.BARREL_CLOSE,
+            SoundSource.BLOCKS,
+            0.5F,
+            raccoon.random.nextFloat() * 0.1F + 0.9F
+        )
     }
 
     fun findHomeBarrel(): Boolean {
@@ -73,9 +76,10 @@ abstract class MoveToBarrelGoal(val raccoon: RaccoonEntity, speed: Double, range
     }
 
     override fun stop() {
-        if (interactionDelay == -1) {
+        if (interactionDelay != -1) {
             playBarrelSound(false)
         }
+        interactionDelay = -1
     }
 
     override fun canUse(): Boolean {

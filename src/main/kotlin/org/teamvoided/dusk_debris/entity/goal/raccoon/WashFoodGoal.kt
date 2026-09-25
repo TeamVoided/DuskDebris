@@ -11,8 +11,12 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import java.util.EnumSet
 
 class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : MoveToBlockGoal(raccoon, speed, range) {
+    init {
+        this.flags = EnumSet.of(Flag.LOOK, Flag.MOVE)
+    }
 
     private var timer: Int = 0
 

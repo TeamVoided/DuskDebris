@@ -30,6 +30,7 @@ class RaccoonEntityHeldItemFeatureRenderer(
     ) {
         val sleeping: Boolean = raccoon.isSleeping
         val baby: Boolean = raccoon.isBaby
+        val model = parentModel as RaccoonEntityModel
         matrices.pushPose()
         //if (baby) {
         //    val babyScale = 0.75f
@@ -37,13 +38,18 @@ class RaccoonEntityHeldItemFeatureRenderer(
         //    matrices.translate(0f, 0.5f, 0.209375f)
         //}
 
-        matrices.translate(
-            this.parentModel.head.x / 16f,
-            this.parentModel.head.y / 16f,
-            this.parentModel.head.z / 16f
-        )
-        matrices.mulPose(Axis.YP.rotationDegrees(headYaw))
-        matrices.mulPose(Axis.XP.rotationDegrees(headPitch))
+        model.raccoon.translateAndRotate(matrices)
+        model.body.translateAndRotate(matrices)
+        model.head.translateAndRotate(matrices)
+        matrices.translate(0.01f, 0.06f, -0.3f)
+        matrices.mulPose(Axis.XP.rotationDegrees(-90f))
+        //matrices.translate(
+        //    this.parentModel.head.x / 16f,
+        //    this.parentModel.head.y / 16f,
+        //    this.parentModel.head.z / 16f
+        //)
+        //matrices.mulPose(Axis.YP.rotationDegrees(headYaw))
+        //matrices.mulPose(Axis.XP.rotationDegrees(headPitch))
         //if (baby) {
         //    if (sleeping) {
         //        matrices.translate(0.4f, 0.26f, 0.15f)
@@ -55,7 +61,7 @@ class RaccoonEntityHeldItemFeatureRenderer(
         //} else {
         //    matrices.translate(0.06f, 0.27f, -0.5f)
         //}
-
+//
         //matrices.mulPose(Axis.XP.rotationDegrees(90f))
         //if (sleeping) {
         //    matrices.mulPose(Axis.ZP.rotationDegrees(90f))

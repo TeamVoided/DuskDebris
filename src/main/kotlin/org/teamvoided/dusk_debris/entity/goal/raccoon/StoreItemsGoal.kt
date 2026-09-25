@@ -21,28 +21,28 @@ class StoreItemsGoal(raccoon: RaccoonEntity, speed: Double, range: Int) :
                 playBarrelSound(true)
             }
 
-            if (interactionDelay >= MAX_INTERACTION_DELAY) {
-                var firstEmptySlot = -1
-                for (i in 0..<blockEntity.containerSize) run {
-                    val stack = blockEntity.getItem(i)
-                    if (stack.isEmpty) {
-                        if (firstEmptySlot == -1) {
-                            firstEmptySlot = i
-                        }
-                    } else if (stack.count < stack.maxStackSize
-                        && ItemStack.isSameItemSameComponents(stack, raccoon.getHeldItem())
-                    ) {
-                        putItemInSlot(stack, i, blockEntity)
-                        if (heldItem.isEmpty) {
-                            return
-                        }
+            //if (interactionDelay >= MAX_INTERACTION_DELAY) {
+            var firstEmptySlot = -1
+            for (i in 0..<blockEntity.containerSize) run {
+                val stack = blockEntity.getItem(i)
+                if (stack.isEmpty) {
+                    if (firstEmptySlot == -1) {
+                        firstEmptySlot = i
+                    }
+                } else if (stack.count < stack.maxStackSize
+                    && ItemStack.isSameItemSameComponents(stack, raccoon.getHeldItem())
+                ) {
+                    putItemInSlot(stack, i, blockEntity)
+                    if (heldItem.isEmpty) {
+                        return
                     }
                 }
-
-                if (firstEmptySlot != -1) {
-                    putItemInSlot(blockEntity.getItem(firstEmptySlot), firstEmptySlot, blockEntity)
-                }
             }
+
+            if (firstEmptySlot != -1) {
+                putItemInSlot(blockEntity.getItem(firstEmptySlot), firstEmptySlot, blockEntity)
+            }
+            //}
         }
     }
 
@@ -60,8 +60,9 @@ class StoreItemsGoal(raccoon: RaccoonEntity, speed: Double, range: Int) :
     }
 
     override fun canUse(): Boolean {
-        return raccoon.barrelPos != RaccoonEntity.DEFAULT_BARREL_POS &&
-                !raccoon.getHeldItem().isEmpty && super.canUse()
+        if (raccoon.barrelPos == RaccoonEntity.DEFAULT_BARREL_POS || !super.canUse()) return false
+        val stack = raccoon.getHeldItem()
+        return !stack.isEmpty && !raccoon.canEat(stack)
     }
 
     override fun findNearestBlock(): Boolean {

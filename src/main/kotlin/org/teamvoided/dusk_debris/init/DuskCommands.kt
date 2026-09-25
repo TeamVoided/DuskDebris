@@ -9,10 +9,14 @@ import net.minecraft.commands.Commands.literal
 import net.minecraft.commands.arguments.ResourceArgument
 import net.minecraft.core.Holder
 import net.minecraft.network.chat.Component
+import net.minecraft.world.entity.Display.BillboardConstraints
 import net.minecraft.world.entity.Display.TextDisplay
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.animal.sniffer.Sniffer
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import org.teamvoided.dusk_debris.entity.RaccoonEntity
 import org.teamvoided.dusk_debris.spell.Spell
 import org.teamvoided.dusk_debris.util.spellController
@@ -21,8 +25,12 @@ import org.teamvoided.dusk_debris.util.variant
 
 object DuskCommands {
     fun init() = CommandRegistrationCallback.EVENT.register { dispatcher, ctx, _ ->
+        val killSummoned = literal("killSummoned").executes(this::killSummoned).build()
+        dispatcher.root.addChild(killSummoned)
         val sniffers = literal("sniffers").executes(this::sniffer).build()
         dispatcher.root.addChild(sniffers)
+        val raccoons = literal("raccoons").executes(this::raccoon).build()
+        dispatcher.root.addChild(raccoons)
 
         val worldEvent = literal("worldEvent").build()
         dispatcher.root.addChild(worldEvent)
@@ -55,12 +63,17 @@ object DuskCommands {
         return 1
     }
 
+    fun killSummoned(cx: CommandContext<CommandSourceStack>): Int {
+        cx.source.level.server.commands.performPrefixedCommand(cx.source, "/kill @e[tag=summoned_with_command]")
+        return 1
+    }
+
     fun sniffer(cx: CommandContext<CommandSourceStack>): Int {
         val world = cx.source.level
-        val player = cx.source.player ?: return 0
+        val sourcePos = cx.source.position ?: return 0
         world.registryAccess().registryOrThrow(DuskRegistryKeys.SNIFFER_VARIANT).holders().toList()
             .forEachIndexed { variantIdx, variant ->
-                val pos = player.position().add(EntityType.SNIFFER.width * 2.0 * variantIdx, 0.0, 0.0)
+                val pos = sourcePos.add(EntityType.SNIFFER.width * 2.0 * variantIdx, 0.0, 0.0)
 
                 val sniffer = lobotomize(Sniffer(EntityType.SNIFFER, world))
                 sniffer.setPos(pos)
@@ -73,6 +86,7 @@ object DuskCommands {
                 val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
                 name.setPos(pos.add(0.0, 3.0, 0.0))
                 name.text = Component.literal(variant.unwrapKey().get().location().toString())
+                name.billboardConstraints = BillboardConstraints.CENTER
                 name.addTag("summoned_with_command")
                 world.addFreshEntity(name)
 
@@ -82,32 +96,47 @@ object DuskCommands {
 
     fun raccoon(cx: CommandContext<CommandSourceStack>): Int {
         val world = cx.source.level
-        val player = cx.source.player ?: return 0
+        val sourcePos = cx.source.position ?: return 0
         world.registryAccess().registryOrThrow(DuskRegistryKeys.RACCOON_VARIANT).holders().toList()
             .forEachIndexed { variantIdx, variant ->
+                val variantOffset = DuskEntities.RACCOON.width * 5.0 * variantIdx
                 RaccoonEntity.STATES.forEachIndexed { stateIdx, state ->
-                    val pos = player.position().add(
-                        DuskEntities.RACCOON.width * 2.0 * variantIdx,
+                    val pos = sourcePos.add(
+                        variantOffset,
                         0.0,
-                        DuskEntities.RACCOON.width * 2.0 * stateIdx
+                        DuskEntities.RACCOON.width * 5.0 * -stateIdx
                     )
 
                     val raccoon = lobotomize(RaccoonEntity(DuskEntities.RACCOON, world))
                     raccoon.setPos(pos)
                     raccoon.variant = variant
                     raccoon.state = state.second
+                    raccoon.setItemSlot(EquipmentSlot.MAINHAND, ItemStack(Items.EMERALD))
                     world.addFreshEntity(raccoon)
-                    raccoon.isBaby
-                    raccoon.setPos(pos.add(0.0, raccoon.bbHeight.toDouble(), 0.0))
-                    world.addFreshEntity(raccoon)
+                    //raccoon.isBaby = true
+                    //raccoon.setPos(pos.add(0.0, DuskEntities.RACCOON.height.toDouble(), 0.0))
+                    //world.addFreshEntity(raccoon)
 
                     val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
-                    name.setPos(pos.add(0.0, raccoon.bbHeight.toDouble() * 2, 0.0))
-                    name.text = Component.literal(variant.unwrapKey().get().location().toString() + ", " + state.first)
+                    name.setPos(pos.add(0.0, DuskEntities.RACCOON.height * 2.0, 0.0))
+                    name.text = Component.literal(state.first)
+                    name.billboardConstraints = BillboardConstraints.CENTER
                     name.addTag("summoned_with_command")
                     world.addFreshEntity(name)
 
                 }
+                val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
+                name.setPos(
+                    sourcePos.add(
+                        variantOffset,
+                        DuskEntities.RACCOON.height * 3.0,
+                        0.0
+                    )
+                )
+                name.text = Component.literal(variant.unwrapKey().get().location().path.toString())
+                name.billboardConstraints = BillboardConstraints.CENTER
+                name.addTag("summoned_with_command")
+                world.addFreshEntity(name)
             }
         return 1
     }
