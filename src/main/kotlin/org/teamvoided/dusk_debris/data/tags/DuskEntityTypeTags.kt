@@ -10,6 +10,8 @@ object DuskEntityTypeTags {
     val THROWABLE_BOMB = create("throwable_bomb")
     val DUSK_SKELETON_ATTACKS = create("dusk_skeleton_attacks")
     val DUSK_SKELETON_RETREATS = create("dusk_skeleton_retreats")
+    val RACCOON_ATTACKS = create("raccoon_attacks")
+    val RACCOON_RETREATS = create("raccoon_retreats")
     val IS_NOT_AFFECTED_BY_NETHERSHROOM = create("does_not_trigger_nethershroom")
     val GEYSERS_DONT_PROPEL = create("geysers_dont_propel")
     val FANS_DONT_AFFECT = create("fans_dont_affect")

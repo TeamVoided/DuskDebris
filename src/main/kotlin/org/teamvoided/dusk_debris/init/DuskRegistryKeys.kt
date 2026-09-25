@@ -4,7 +4,7 @@ import net.fabricmc.fabric.api.event.registry.DynamicRegistries
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceKey
 import org.teamvoided.dusk_debris.DuskDebris.id
-import org.teamvoided.dusk_debris.entity.RaccoonVariant
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonVariant
 import org.teamvoided.dusk_debris.entity.variant.SnifferVariant
 import org.teamvoided.dusk_debris.spell.Spell
 import org.teamvoided.dusk_debris.spell.SpellType

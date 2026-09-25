@@ -4,7 +4,6 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.MobRenderer
 import net.minecraft.resources.ResourceLocation
 import org.teamvoided.dusk_debris.entity.DuskEntityModelLayers
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
 
 class RaccoonEntityRenderer(context: EntityRendererProvider.Context) :
     MobRenderer<RaccoonEntity, RaccoonEntityModel>(
@@ -12,10 +11,11 @@ class RaccoonEntityRenderer(context: EntityRendererProvider.Context) :
     ) {
 
     init {
+        addLayer(RaccoonEyesFeatureRenderer(this))
         addLayer(RaccoonEntityHeldItemFeatureRenderer(this, context.itemInHandRenderer))
     }
 
     override fun getTextureLocation(entity: RaccoonEntity): ResourceLocation {
-        return entity.variant.value().texture
+        return if (entity.isSleeping) entity.variant.value().sleepingTexture else entity.variant.value().texture
     }
 }

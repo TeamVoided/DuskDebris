@@ -1,16 +1,12 @@
 package org.teamvoided.dusk_debris.entity.goal.raccoon
 
 import net.minecraft.core.BlockPos
-import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.sounds.SoundEvents
-import net.minecraft.util.Mth
 import net.minecraft.world.entity.EntityEvent
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal
 import net.minecraft.world.level.LevelReader
-import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.phys.Vec3
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import java.util.EnumSet
 
 class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : MoveToBlockGoal(raccoon, speed, range) {

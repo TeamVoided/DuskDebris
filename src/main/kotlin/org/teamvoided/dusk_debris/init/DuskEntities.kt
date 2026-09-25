@@ -15,6 +15,7 @@ import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.DuskDebris.id
 import org.teamvoided.dusk_debris.entity.*
 import org.teamvoided.dusk_debris.entity.projectile.FlyingPumpkinProjectile
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import org.teamvoided.dusk_debris.entity.spell.VengefulSpiritEntity
 import org.teamvoided.dusk_debris.entity.throwable_bomb.BlunderbombEntity
 import org.teamvoided.dusk_debris.entity.throwable_bomb.BonecallerEntity

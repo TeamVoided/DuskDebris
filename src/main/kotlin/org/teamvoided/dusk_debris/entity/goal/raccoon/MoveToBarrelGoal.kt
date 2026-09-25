@@ -2,14 +2,13 @@ package org.teamvoided.dusk_debris.entity.goal.raccoon
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.BarrelBlock
 import net.minecraft.world.level.block.Blocks
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import kotlin.jvm.optionals.getOrNull
 
 const val MAX_INTERACTION_DELAY = 20

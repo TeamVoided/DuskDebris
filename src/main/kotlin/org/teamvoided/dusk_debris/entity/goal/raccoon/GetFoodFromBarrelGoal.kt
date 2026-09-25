@@ -2,9 +2,8 @@ package org.teamvoided.dusk_debris.entity.goal.raccoon
 
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.entity.BarrelBlockEntity
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import kotlin.math.min
-import kotlin.math.max
 
 class GetFoodFromBarrelGoal(raccoon: RaccoonEntity, speed: Double, range: Int) :
     MoveToBarrelGoal(raccoon, speed, range) {

@@ -1,15 +1,11 @@
 package org.teamvoided.dusk_debris.entity.raccoon
 
-import net.minecraft.client.animation.definitions.SnifferAnimation
 import net.minecraft.client.model.AgeableHierarchicalModel
 import net.minecraft.client.model.geom.ModelPart
 import net.minecraft.client.model.geom.PartPose
 import net.minecraft.client.model.geom.builders.CubeListBuilder
 import net.minecraft.client.model.geom.builders.LayerDefinition
 import net.minecraft.client.model.geom.builders.MeshDefinition
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
-import org.teamvoided.dusk_debris.util.Utils.vec3d
-import org.teamvoided.dusk_debris.util.sendMessageIngame
 import kotlin.math.sin
 
 class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<RaccoonEntity>(8f, 3.35f) {

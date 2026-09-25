@@ -2,7 +2,7 @@ package org.teamvoided.dusk_debris.entity.goal.raccoon
 
 
 import net.minecraft.world.entity.EntityEvent
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 
 class ClaimBarrelGoal(raccoon: RaccoonEntity, speed: Double, range: Int) :
     MoveToBarrelGoal(raccoon, speed, range) {

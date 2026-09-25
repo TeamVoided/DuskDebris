@@ -1,10 +1,8 @@
 package org.teamvoided.dusk_debris.data.variants
 
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
-import net.minecraft.world.entity.decoration.PaintingVariant
 import org.teamvoided.dusk_debris.DuskDebris.id
-import org.teamvoided.dusk_debris.entity.RaccoonVariant
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonVariant
 import org.teamvoided.dusk_debris.init.DuskRegistryKeys
 
 object DuskRaccoonVariants {

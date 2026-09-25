@@ -17,7 +17,7 @@ import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.animal.sniffer.Sniffer
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import org.teamvoided.dusk_debris.spell.Spell
 import org.teamvoided.dusk_debris.util.spellController
 import org.teamvoided.dusk_debris.util.toBlockPos

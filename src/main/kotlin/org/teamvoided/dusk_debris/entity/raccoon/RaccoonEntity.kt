@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity
+package org.teamvoided.dusk_debris.entity.raccoon
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Holder
@@ -14,19 +14,20 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier
-import net.minecraft.world.entity.ai.goal.BreedGoal
-import net.minecraft.world.entity.ai.goal.FloatGoal
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
+import net.minecraft.world.entity.ai.goal.*
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
 import net.minecraft.world.entity.animal.Animal
 import net.minecraft.world.entity.animal.Fox
+import net.minecraft.world.entity.animal.Turtle
 import net.minecraft.world.entity.item.ItemEntity
+import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.gameevent.GameEvent
 import net.minecraft.world.phys.Vec3
+import org.teamvoided.dusk_debris.data.tags.DuskEntityTypeTags
 import org.teamvoided.dusk_debris.data.tags.DuskItemTags
 import org.teamvoided.dusk_debris.entity.goal.raccoon.*
 import org.teamvoided.dusk_debris.init.DuskAttachmentTypes
@@ -51,6 +52,9 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
     override fun registerGoals() {
         goalSelector.addGoal(1, FloatGoal(this))
         goalSelector.addGoal(2, BreedGoal(this, 1.0))
+        goalSelector.addGoal(
+            4, AvoidEntityGoal(this, LivingEntity::class.java, 8.0f, 1.6, 1.4)
+            { it.type.`is`(DuskEntityTypeTags.RACCOON_RETREATS) })
         goalSelector.addGoal(7, ClaimBarrelGoal(this, 1.2, 12))
         goalSelector.addGoal(7, WashFoodGoal(this, 1.2, 12))
         goalSelector.addGoal(8, PickBerriesGoal(this, 1.2, 12, 1))
@@ -61,7 +65,23 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         goalSelector.addGoal(10, LookAtPlayerGoal(this, Player::class.java, 8F))
         goalSelector.addGoal(10, RandomLookAroundGoal(this))
         goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))
+
+        targetSelector.addGoal(
+            5, NearestAttackableTargetGoal(this, LivingEntity::class.java, 40, false, false) { willAttack(it) }
+        )
     }
+
+    fun willAttack(entity: LivingEntity): Boolean {
+        if (entity.type.`is`(DuskEntityTypeTags.RACCOON_ATTACKS)) {
+            if (entity is Turtle) {
+                return Turtle.BABY_ON_LAND_SELECTOR.test(entity)
+            } else if (entity is Slime) {
+                return entity.size == 1
+            }
+            return true
+        } else return false
+    }
+
 
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
         super.defineSynchedData(builder)

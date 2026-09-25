@@ -5,12 +5,11 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceKey
-import org.teamvoided.dusk_debris.DuskDebris
 import org.teamvoided.dusk_debris.DuskDebris.id
 import org.teamvoided.dusk_debris.block.attachments.ExhaustData
 import org.teamvoided.dusk_debris.data.gen.providers.variants.SnifferVariants
 import org.teamvoided.dusk_debris.data.variants.DuskRaccoonVariants
-import org.teamvoided.dusk_debris.entity.RaccoonVariant
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonVariant
 import org.teamvoided.dusk_debris.entity.variant.SnifferVariant
 
 @Suppress("UnstableApiUsage")

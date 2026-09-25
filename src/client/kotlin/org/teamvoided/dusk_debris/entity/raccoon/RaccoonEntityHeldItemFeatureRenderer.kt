@@ -8,8 +8,6 @@ import net.minecraft.client.renderer.entity.RenderLayerParent
 import net.minecraft.client.renderer.entity.layers.RenderLayer
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.ItemDisplayContext
-import net.minecraft.world.item.ItemStack
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
 
 class RaccoonEntityHeldItemFeatureRenderer(
     context: RenderLayerParent<RaccoonEntity, RaccoonEntityModel>,
@@ -28,45 +26,13 @@ class RaccoonEntityHeldItemFeatureRenderer(
         headYaw: Float,
         headPitch: Float
     ) {
-        val sleeping: Boolean = raccoon.isSleeping
-        val baby: Boolean = raccoon.isBaby
         val model = parentModel as RaccoonEntityModel
         matrices.pushPose()
-        //if (baby) {
-        //    val babyScale = 0.75f
-        //    matrices.scale(babyScale, babyScale, babyScale)
-        //    matrices.translate(0f, 0.5f, 0.209375f)
-        //}
-
         model.raccoon.translateAndRotate(matrices)
         model.body.translateAndRotate(matrices)
         model.head.translateAndRotate(matrices)
         matrices.translate(0.01f, 0.06f, -0.3f)
         matrices.mulPose(Axis.XP.rotationDegrees(-90f))
-        //matrices.translate(
-        //    this.parentModel.head.x / 16f,
-        //    this.parentModel.head.y / 16f,
-        //    this.parentModel.head.z / 16f
-        //)
-        //matrices.mulPose(Axis.YP.rotationDegrees(headYaw))
-        //matrices.mulPose(Axis.XP.rotationDegrees(headPitch))
-        //if (baby) {
-        //    if (sleeping) {
-        //        matrices.translate(0.4f, 0.26f, 0.15f)
-        //    } else {
-        //        matrices.translate(0.06f, 0.26f, -0.5f)
-        //    }
-        //} else if (sleeping) {
-        //    matrices.translate(0.46f, 0.26f, 0.22f)
-        //} else {
-        //    matrices.translate(0.06f, 0.27f, -0.5f)
-        //}
-//
-        //matrices.mulPose(Axis.XP.rotationDegrees(90f))
-        //if (sleeping) {
-        //    matrices.mulPose(Axis.ZP.rotationDegrees(90f))
-        //}
-
         val stack = raccoon.getItemBySlot(EquipmentSlot.MAINHAND)
         heldItemRenderer.renderItem(
             raccoon, stack,

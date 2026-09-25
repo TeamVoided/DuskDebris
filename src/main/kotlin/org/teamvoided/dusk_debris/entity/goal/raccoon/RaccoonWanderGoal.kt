@@ -2,7 +2,7 @@ package org.teamvoided.dusk_debris.entity.goal.raccoon
 
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal
 import net.minecraft.world.phys.Vec3
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import org.teamvoided.dusk_debris.util.Utils.vec3d
 
 class RaccoonWanderGoal(

@@ -4,7 +4,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.ai.goal.Goal
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.item.ItemStack
-import org.teamvoided.dusk_debris.entity.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import java.util.*
 import java.util.function.Predicate
 
