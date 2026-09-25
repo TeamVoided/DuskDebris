@@ -11,7 +11,9 @@ import net.minecraft.core.Holder
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.Display.TextDisplay
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.animal.sniffer.Sniffer
+import org.teamvoided.dusk_debris.entity.RaccoonEntity
 import org.teamvoided.dusk_debris.spell.Spell
 import org.teamvoided.dusk_debris.util.spellController
 import org.teamvoided.dusk_debris.util.toBlockPos
@@ -56,31 +58,66 @@ object DuskCommands {
     fun sniffer(cx: CommandContext<CommandSourceStack>): Int {
         val world = cx.source.level
         val player = cx.source.player ?: return 0
-        var offset = 0.0
-        world.registryAccess().registryOrThrow(DuskRegistryKeys.SNIFFER_VARIANT).holders().forEach {
-            val pos = player.position().add(offset, 0.0, 0.0)
+        world.registryAccess().registryOrThrow(DuskRegistryKeys.SNIFFER_VARIANT).holders().toList()
+            .forEachIndexed { variantIdx, variant ->
+                val pos = player.position().add(EntityType.SNIFFER.width * 2.0 * variantIdx, 0.0, 0.0)
 
-            val sniffer = Sniffer(EntityType.SNIFFER, world)
-            sniffer.setPos(pos)
-            sniffer.isInvulnerable = true
-            sniffer.variant = it
-            sniffer.setNoAi(true)
-            sniffer.isSilent = true
-            sniffer.setYRot(0f)
-            sniffer.addTag("summoned_with_command")
-            world.addFreshEntity(sniffer)
-            sniffer.isBaby
-            sniffer.setPos(pos.add(0.0, sniffer.bbHeight.toDouble(), 0.0))
-            world.addFreshEntity(sniffer)
+                val sniffer = lobotomize(Sniffer(EntityType.SNIFFER, world))
+                sniffer.setPos(pos)
+                sniffer.variant = variant
+                world.addFreshEntity(sniffer)
+                sniffer.isBaby
+                sniffer.setPos(pos.add(0.0, sniffer.bbHeight.toDouble(), 0.0))
+                world.addFreshEntity(sniffer)
 
-            val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
-            name.setPos(pos.add(0.0, 3.0, 0.0))
-            name.text = Component.literal(it.unwrapKey().get().location().toString())
-            name.addTag("summoned_with_command")
-            world.addFreshEntity(name)
+                val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
+                name.setPos(pos.add(0.0, 3.0, 0.0))
+                name.text = Component.literal(variant.unwrapKey().get().location().toString())
+                name.addTag("summoned_with_command")
+                world.addFreshEntity(name)
 
-            offset += EntityType.SNIFFER.width * 2
-        }
+            }
         return 1
+    }
+
+    fun raccoon(cx: CommandContext<CommandSourceStack>): Int {
+        val world = cx.source.level
+        val player = cx.source.player ?: return 0
+        world.registryAccess().registryOrThrow(DuskRegistryKeys.RACCOON_VARIANT).holders().toList()
+            .forEachIndexed { variantIdx, variant ->
+                RaccoonEntity.STATES.forEachIndexed { stateIdx, state ->
+                    val pos = player.position().add(
+                        DuskEntities.RACCOON.width * 2.0 * variantIdx,
+                        0.0,
+                        DuskEntities.RACCOON.width * 2.0 * stateIdx
+                    )
+
+                    val raccoon = lobotomize(RaccoonEntity(DuskEntities.RACCOON, world))
+                    raccoon.setPos(pos)
+                    raccoon.variant = variant
+                    raccoon.state = state.second
+                    world.addFreshEntity(raccoon)
+                    raccoon.isBaby
+                    raccoon.setPos(pos.add(0.0, raccoon.bbHeight.toDouble(), 0.0))
+                    world.addFreshEntity(raccoon)
+
+                    val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
+                    name.setPos(pos.add(0.0, raccoon.bbHeight.toDouble() * 2, 0.0))
+                    name.text = Component.literal(variant.unwrapKey().get().location().toString() + ", " + state.first)
+                    name.addTag("summoned_with_command")
+                    world.addFreshEntity(name)
+
+                }
+            }
+        return 1
+    }
+
+    private fun <T : Mob> lobotomize(entity: T): T {
+        entity.isInvulnerable = true
+        entity.isNoAi = true
+        entity.isSilent = true
+        entity.yRot = 0f
+        entity.addTag("summoned_with_command")
+        return entity
     }
 }
