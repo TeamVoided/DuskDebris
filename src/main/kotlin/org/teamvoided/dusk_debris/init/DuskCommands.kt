@@ -18,6 +18,8 @@ import net.minecraft.world.entity.animal.sniffer.Sniffer
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonStates
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonStates.Companion.setState
 import org.teamvoided.dusk_debris.spell.Spell
 import org.teamvoided.dusk_debris.util.spellController
 import org.teamvoided.dusk_debris.util.toBlockPos
@@ -100,7 +102,7 @@ object DuskCommands {
         world.registryAccess().registryOrThrow(DuskRegistryKeys.RACCOON_VARIANT).holders().toList()
             .forEachIndexed { variantIdx, variant ->
                 val variantOffset = DuskEntities.RACCOON.width * 5.0 * variantIdx
-                RaccoonEntity.STATES.forEachIndexed { stateIdx, state ->
+                RaccoonStates.COMMAND_LIST.forEachIndexed { stateIdx, state ->
                     val pos = sourcePos.add(
                         variantOffset,
                         0.0,
@@ -110,7 +112,7 @@ object DuskCommands {
                     val raccoon = lobotomize(RaccoonEntity(DuskEntities.RACCOON, world))
                     raccoon.setPos(pos)
                     raccoon.variant = variant
-                    raccoon.state = state.second
+                    raccoon.setState(state.second)
                     raccoon.setItemSlot(EquipmentSlot.MAINHAND, ItemStack(Items.EMERALD))
                     world.addFreshEntity(raccoon)
                     //raccoon.isBaby = true

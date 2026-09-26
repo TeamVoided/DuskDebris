@@ -7,11 +7,13 @@ import net.minecraft.world.entity.ai.goal.MoveToBlockGoal
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.material.Fluids
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonStates
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonStates.Companion.setState
 import java.util.EnumSet
 
 class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : MoveToBlockGoal(raccoon, speed, range) {
     init {
-        this.flags = EnumSet.of(Flag.LOOK, Flag.MOVE)
+        flags = EnumSet.of(Flag.LOOK, Flag.MOVE, Flag.JUMP)
     }
 
     private var timer: Int = 0
@@ -20,13 +22,13 @@ class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : Move
         return world.getFluidState(pos).`is`(Fluids.WATER)
     }
 
-    override fun acceptedDistance(): Double = 5.0
+    override fun acceptedDistance(): Double = raccoon.bbWidth * 0.5
 
     override fun tick() {
         if (isReachedTarget) {
             timer++
             if (timer >= 200) {
-                raccoon.setStateIdle()
+                raccoon.setState(RaccoonStates.Idle)
                 raccoon.hasWashedFood = true
             }
 
@@ -43,11 +45,11 @@ class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : Move
     }
 
     override fun canUse(): Boolean =
-        !raccoon.hasWashedFood && raccoon.canMove() && raccoon.canEat(raccoon.getHeldItem()) && super.canUse()
+        !raccoon.hasWashedFood && raccoon.canMove() && raccoon.canEat(raccoon.getHeldItem()) && raccoon.canMove() && super.canUse()
 
     override fun start() {
         timer = 0
-        raccoon.setStateWashing()
+        raccoon.setState(RaccoonStates.Washing)
         super.start()
     }
 }

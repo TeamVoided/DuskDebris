@@ -25,11 +25,12 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.gameevent.GameEvent
 import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.data.tags.DuskEntityTypeTags
 import org.teamvoided.dusk_debris.data.tags.DuskItemTags
 import org.teamvoided.dusk_debris.entity.goal.raccoon.*
+import org.teamvoided.dusk_debris.entity.raccoon.types.RaccoonAlignment
+import org.teamvoided.dusk_debris.entity.raccoon.types.RaccoonAlignment.Companion.getPreyTargets
 import org.teamvoided.dusk_debris.init.DuskAttachmentTypes
 import org.teamvoided.dusk_debris.init.DuskEntities
 import org.teamvoided.dusk_debris.init.DuskRegistryKeys
@@ -53,8 +54,9 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         goalSelector.addGoal(1, FloatGoal(this))
         goalSelector.addGoal(2, BreedGoal(this, 1.0))
         goalSelector.addGoal(
-            4, AvoidEntityGoal(this, LivingEntity::class.java, 8.0f, 1.6, 1.4)
+            4, AvoidEntityGoal(this, LivingEntity::class.java, 8f, 1.6, 1.4)
             { it.type.`is`(DuskEntityTypeTags.RACCOON_RETREATS) })
+        goalSelector.addGoal(6, SeekShelterGoal(this, 1.25))
         goalSelector.addGoal(7, ClaimBarrelGoal(this, 1.2, 12))
         goalSelector.addGoal(7, WashFoodGoal(this, 1.2, 12))
         goalSelector.addGoal(8, PickBerriesGoal(this, 1.2, 12, 1))
@@ -67,26 +69,16 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))
 
         targetSelector.addGoal(
-            5, NearestAttackableTargetGoal(this, LivingEntity::class.java, 40, false, false) { willAttack(it) }
+            5, NearestAttackableTargetGoal(this, LivingEntity::class.java, 40, false, false)
+            { this.getPreyTargets(RaccoonAlignment.HuntsMany, it) }
         )
-    }
-
-    fun willAttack(entity: LivingEntity): Boolean {
-        if (entity.type.`is`(DuskEntityTypeTags.RACCOON_ATTACKS)) {
-            if (entity is Turtle) {
-                return Turtle.BABY_ON_LAND_SELECTOR.test(entity)
-            } else if (entity is Slime) {
-                return entity.size == 1
-            }
-            return true
-        } else return false
     }
 
 
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
         super.defineSynchedData(builder)
         builder.define(BARREL_POS, DEFAULT_BARREL_POS)
-        builder.define(DATA_STATE, IDLE_STATE)
+        builder.define(DATA_STATE, RaccoonStates.Idle.ordinal)
     }
 
     override fun addAdditionalSaveData(tag: CompoundTag) {
@@ -297,15 +289,17 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         return stack.`is`(DuskItemTags.RACCOON_FOOD)
     }
 
-    fun canMove(): Boolean = state <= SNEEZE_STATE
+    override fun isSleeping(): Boolean = RaccoonStates.entries[state].closeEyes()
+
+    fun canMove(): Boolean = RaccoonStates.entries[state].canMove()
 
     override fun onSyncedDataUpdated(entityDataAccessor: EntityDataAccessor<*>?) {
         if (DATA_STATE == entityDataAccessor) {
             resetAnimations()
-            when (state) {
-                IDLE_STATE, SITTING_STATE, SLEEPING_STATE -> {} //these are poses, not animations. done in model.
-                SNEEZE_STATE -> sneezingAnimationState.startIfStopped(tickCount)
-                WASHING_STATE -> washingAnimationState.startIfStopped(tickCount)
+            when (RaccoonStates.entries[state]) {
+                RaccoonStates.Idle, RaccoonStates.Sitting, RaccoonStates.Sleeping -> {} //poses, not animations. done in model.
+                RaccoonStates.Sneeze -> sneezingAnimationState.startIfStopped(tickCount)
+                RaccoonStates.Washing -> washingAnimationState.startIfStopped(tickCount)
             }
         }
         super.onSyncedDataUpdated(entityDataAccessor)
@@ -336,25 +330,6 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
             .getOrThrow(getAttachedOrCreate(DuskAttachmentTypes.RACCOON_VARIANT))
     }
 
-    fun setStateIdle() {
-        state = IDLE_STATE
-    }
-
-    fun setStateSitting() {
-        this.gameEvent(GameEvent.ENTITY_MOUNT)
-        state = SITTING_STATE
-    }
-
-    fun setStateSleeping() {
-        this.gameEvent(GameEvent.ENTITY_ACTION)
-        state = SLEEPING_STATE
-    }
-
-    fun setStateWashing() {
-        this.gameEvent(GameEvent.ENTITY_ACTION)
-        state = WASHING_STATE
-    }
-
     fun forgetBarrel() {
         barrelPos = DEFAULT_BARREL_POS
         level().broadcastEntityEvent(this, EntityEvent.VILLAGER_ANGRY)
@@ -378,19 +353,6 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
 
         const val WANDER_RANGE = 32 * 32
         const val BARREL_FORGET_RANGE = 64 * 64
-
-        const val IDLE_STATE = 0
-        const val SNEEZE_STATE = 1
-        const val SITTING_STATE = 2
-        const val SLEEPING_STATE = 3
-        const val WASHING_STATE = 4
-        val STATES = listOf(        //this is used for the command
-            "Idle" to IDLE_STATE,
-            "Sneeze" to SNEEZE_STATE,
-            "Sitting" to SITTING_STATE,
-            "Sleeping" to SLEEPING_STATE,
-            "washing" to WASHING_STATE
-        )
 
         fun createAttributes(): AttributeSupplier.Builder {
             return Fox.createAttributes()

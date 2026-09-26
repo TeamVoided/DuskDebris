@@ -10,7 +10,7 @@ import java.util.function.Predicate
 
 internal class RaccoonSearchForItemsGoal(val raccoon: RaccoonEntity) : Goal() {
     init {
-        flags = EnumSet.of(Flag.MOVE)
+        flags = EnumSet.of(Flag.MOVE, Flag.LOOK)
     }
 
     override fun canUse(): Boolean {

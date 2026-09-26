@@ -26,7 +26,7 @@ open class RaccoonEyesFeatureRenderer(context: RenderLayerParent<RaccoonEntity, 
         headYaw: Float,
         headPitch: Float
     ) {
-        if (raccoon.state != RaccoonEntity.SLEEPING_STATE) {
+        if (!raccoon.isSleeping) {
             val vertexConsumer = vertexConsumers.getBuffer(this.getEyesLayer(raccoon))
             this.parentModel.renderToBuffer(matrices, vertexConsumer, 15728640, OverlayTexture.NO_OVERLAY)
         }

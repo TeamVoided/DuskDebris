@@ -9,12 +9,17 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.BarrelBlock
 import net.minecraft.world.level.block.Blocks
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
+import java.util.EnumSet
 import kotlin.jvm.optionals.getOrNull
 
 const val MAX_INTERACTION_DELAY = 20
 
 abstract class MoveToBarrelGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) :
     MoveToBlockGoal(raccoon, speed, range) {
+
+    init {
+        flags = EnumSet.of(Flag.LOOK, Flag.MOVE, Flag.JUMP)
+    }
 
     var actionDelay = 0
     var interactionDelay = -1
@@ -23,7 +28,7 @@ abstract class MoveToBarrelGoal(val raccoon: RaccoonEntity, speed: Double, range
         return world.getBlockState(pos).`is`(Blocks.BARREL)
     }
 
-    override fun acceptedDistance(): Double = 5.0
+    override fun acceptedDistance(): Double = 0.75
 
     override fun tick() {
         if (isReachedTarget) {
