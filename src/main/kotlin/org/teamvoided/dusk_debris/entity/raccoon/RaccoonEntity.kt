@@ -60,6 +60,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         goalSelector.addGoal(6, SeekShelterGoal(this, 1.25))
         goalSelector.addGoal(7, ClaimBarrelGoal(this, 1.2, 12))
         goalSelector.addGoal(7, WashFoodGoal(this, 1.2, 12))
+        goalSelector.addGoal(7, RaccoonMeleeAttackGoal(this, 1.2, true))
         goalSelector.addGoal(8, PickBerriesGoal(this, 1.2, 12, 1))
         goalSelector.addGoal(8, GetFoodFromBarrelGoal(this, 1.2, 0))
         goalSelector.addGoal(9, RaccoonWanderGoal(this, 1.0))
