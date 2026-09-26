@@ -103,7 +103,7 @@ object DuskCommands {
         world.registryAccess().registryOrThrow(DuskRegistryKeys.RACCOON_VARIANT).holders().toList()
             .forEachIndexed { variantIdx, variant ->
                 val variantOffset = DuskEntities.RACCOON.width * 5.0 * variantIdx
-                RaccoonStates.COMMAND_LIST.forEachIndexed { stateIdx, state ->
+                RaccoonStates.entries.forEachIndexed { stateIdx, state ->
                     val pos = sourcePos.add(
                         variantOffset,
                         0.0,
@@ -113,7 +113,7 @@ object DuskCommands {
                     val raccoon = lobotomize(RaccoonEntity(DuskEntities.RACCOON, world))
                     raccoon.setPos(pos)
                     raccoon.variant = variant
-                    raccoon.setState(state.second)
+                    raccoon.setState(state)
                     raccoon.setItemSlot(EquipmentSlot.MAINHAND, ItemStack(Items.EMERALD))
                     world.addFreshEntity(raccoon)
                     //raccoon.isBaby = true
@@ -122,20 +122,14 @@ object DuskCommands {
 
                     val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
                     name.setPos(pos.add(0.0, DuskEntities.RACCOON.height * 2.0, 0.0))
-                    name.text = Component.literal(state.first)
+                    name.text = Component.literal(state.name.lowercase())
                     name.billboardConstraints = BillboardConstraints.CENTER
                     name.addTag("summoned_with_command")
                     world.addFreshEntity(name)
 
                 }
                 val name = TextDisplay(EntityType.TEXT_DISPLAY, world)
-                name.setPos(
-                    sourcePos.add(
-                        variantOffset,
-                        DuskEntities.RACCOON.height * 3.0,
-                        0.0
-                    )
-                )
+                name.setPos(sourcePos.add(variantOffset, DuskEntities.RACCOON.height * 3.0, 0.0))
                 name.text = Component.literal(variant.unwrapKey().get().location().path.toString())
                 name.billboardConstraints = BillboardConstraints.CENTER
                 name.addTag("summoned_with_command")

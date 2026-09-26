@@ -28,7 +28,7 @@ class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : Move
         if (isReachedTarget) {
             timer++
             if (timer >= 200) {
-                raccoon.setState(RaccoonStates.Idle)
+                raccoon.setState(RaccoonStates.IDLE)
                 raccoon.hasWashedFood = true
             }
 
@@ -49,7 +49,7 @@ class WashFoodGoal(val raccoon: RaccoonEntity, speed: Double, range: Int) : Move
 
     override fun start() {
         timer = 0
-        raccoon.setState(RaccoonStates.Washing)
+        raccoon.setState(RaccoonStates.WASHING)
         super.start()
     }
 }

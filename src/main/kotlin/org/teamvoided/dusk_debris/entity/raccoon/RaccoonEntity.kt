@@ -93,7 +93,7 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
         super.defineSynchedData(builder)
         builder.define(BARREL_POS, DEFAULT_BARREL_POS) //does barrel pos even need to be synched?
-        builder.define(DATA_STATE, RaccoonStates.Idle.ordinal)
+        builder.define(DATA_STATE, RaccoonStates.IDLE.ordinal)
     }
 
     override fun addAdditionalSaveData(tag: CompoundTag) {
@@ -101,7 +101,7 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
         tag.putInt(KEY_HUNGER, hunger)
         tag.putInt(KEY_EAT_TICKS, eatTicks)
         tag.putBoolean(KEY_HAS_WASHED_FOOD, hasWashedFood)
-        tag.putInt(KEY_STATE, state)
+        tag.putInt(KEY_STATE, state.ordinal)
         if (barrelPos != DEFAULT_BARREL_POS) {
             val barrelPosTag = CompoundTag()
             barrelPosTag.putInt("x", barrelPos.x)
@@ -117,7 +117,7 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
         if (tag.contains(KEY_HUNGER)) hunger = tag.getInt(KEY_HUNGER)
         if (tag.contains(KEY_EAT_TICKS)) eatTicks = tag.getInt(KEY_EAT_TICKS)
         if (tag.contains(KEY_HAS_WASHED_FOOD)) hasWashedFood = tag.getBoolean(KEY_HAS_WASHED_FOOD)
-        if (tag.contains(KEY_STATE)) state = tag.getInt(KEY_STATE)
+        if (tag.contains(KEY_STATE)) state = RaccoonStates.entries[tag.getInt(KEY_STATE)]
         if (tag.contains(KEY_BARREL_POS, Tag.TAG_COMPOUND.toInt())) {
             val barrelPosTag = tag.getCompound(KEY_BARREL_POS)
             barrelPos = BlockPos(barrelPosTag.getInt("x"), barrelPosTag.getInt("y"), barrelPosTag.getInt("z"))
@@ -319,17 +319,17 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
         return stack.`is`(DuskItemTags.RACCOON_FOOD)
     }
 
-    override fun isSleeping(): Boolean = RaccoonStates.entries[state].closeEyes()
+    override fun isSleeping(): Boolean = state.hasEyesClosed()
 
-    fun canMove(): Boolean = RaccoonStates.entries[state].canMove()
+    fun canMove(): Boolean = state.canMove()
 
     override fun onSyncedDataUpdated(entityDataAccessor: EntityDataAccessor<*>) {
         if (DATA_STATE == entityDataAccessor) {
             resetAnimations()
-            when (RaccoonStates.entries[state]) {
-                RaccoonStates.Idle, RaccoonStates.Sitting, RaccoonStates.Sleeping -> {} //poses, not animations. done in model.
-                RaccoonStates.Sneeze -> sneezingAnimationState.startIfStopped(tickCount)
-                RaccoonStates.Washing -> washingAnimationState.startIfStopped(tickCount)
+            when (state) {
+                RaccoonStates.SNEEZE -> sneezingAnimationState.startIfStopped(tickCount)
+                RaccoonStates.WASHING -> washingAnimationState.startIfStopped(tickCount)
+                else -> Unit //poses, not animations. done in model.
             }
         }
         super.onSyncedDataUpdated(entityDataAccessor)
@@ -365,9 +365,9 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
         level().broadcastEntityEvent(this, EntityEvent.VILLAGER_ANGRY)
     }
 
-    var state: Int
-        get() = entityData[DATA_STATE]
-        set(state) = entityData.set(DATA_STATE, state)
+    var state: RaccoonStates
+        get() = RaccoonStates.entries[entityData[DATA_STATE]]
+        set(state) = entityData.set(DATA_STATE, state.ordinal)
 
     var barrelPos: BlockPos
         get() = entityData[BARREL_POS]

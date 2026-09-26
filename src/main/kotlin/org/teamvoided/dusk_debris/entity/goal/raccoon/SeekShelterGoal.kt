@@ -31,7 +31,7 @@ class SeekShelterGoal(raccoon: RaccoonEntity, speed: Double) : FleeSunGoal(racco
     }
 
     override fun start() {
-        (mob as RaccoonEntity).setState(RaccoonStates.Idle)
+        (mob as RaccoonEntity).setState(RaccoonStates.IDLE)
         super.start()
     }
 }

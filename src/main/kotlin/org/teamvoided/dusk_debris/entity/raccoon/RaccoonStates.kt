@@ -3,38 +3,35 @@ package org.teamvoided.dusk_debris.entity.raccoon
 import net.minecraft.world.level.gameevent.GameEvent
 
 
-enum class RaccoonStates() {
-    Idle(),
-    Sneeze(),
-    Sitting(),
-    Sleeping(),
-    Washing();
+enum class RaccoonStates {
+    IDLE,
+    SNEEZE,
+    SITTING,
+    SLEEPING,
+    WASHING;
 
-    fun closeEyes(): Boolean = this == Sleeping
+    fun hasEyesClosed(): Boolean = this == SLEEPING
 
-    fun canMove(): Boolean = this.ordinal <= Sneeze.ordinal
+    fun canMove(): Boolean = when (this) {
+        IDLE, SNEEZE -> true
+        else -> false
+    }
 
     companion object {
-        val COMMAND_LIST = listOf(
-            "Idle" to Idle,
-            "Sneeze" to Sneeze,
-            "Sitting" to Sitting,
-            "Sleeping" to Sleeping,
-            "washing" to Washing
-        )
 
-        fun RaccoonEntity.setState(state: RaccoonStates) {
-            when (state) {
-                Idle, Sneeze -> {}
-                Sitting -> this.gameEvent(GameEvent.ENTITY_MOUNT)
-                Sleeping, Washing -> this.gameEvent(GameEvent.ENTITY_ACTION)
+        fun RaccoonEntity.setState(newState: RaccoonStates) {
+            when (newState) {
+                SITTING -> gameEvent(GameEvent.ENTITY_MOUNT)
+                SLEEPING, WASHING -> gameEvent(GameEvent.ENTITY_ACTION)
+                else -> Unit
             }
-            this.state = state.ordinal
+            state = newState
         }
 
         //    FOR REFERENCE
         //fun fromOrdinal(ordinal: Int): RaccoonStates {
         //    return RaccoonStates.entries[ordinal]
         //}
+
     }
 }

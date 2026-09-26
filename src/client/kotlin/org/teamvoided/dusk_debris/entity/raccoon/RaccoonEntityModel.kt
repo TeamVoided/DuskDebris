@@ -28,7 +28,7 @@ class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<Raccoon
         limbDistance: Float,
         ageInTicks: Float,
         netHeadYaw: Float,
-        headPitch: Float
+        headPitch: Float,
     ) {
         root.allParts.forEach(ModelPart::resetPose)
         head.xRot = headPitch * (Math.PI.toFloat() / 180f)
@@ -38,7 +38,7 @@ class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<Raccoon
         animate(entity.washingAnimationState, RaccoonAnimation.RUMMAGE, ageInTicks)
         animate(entity.sneezingAnimationState, RaccoonAnimation.HEAD_SHAKE, ageInTicks)
 
-        if (RaccoonStates.entries[entity.state] == RaccoonStates.Sitting)
+        if (entity.state == RaccoonStates.SITTING)
             applyStatic(RaccoonAnimation.POSE_SIT)
         else if (entity.isSleeping)
             applyStatic(RaccoonAnimation.POSE_SLEEP)
@@ -50,12 +50,12 @@ class RaccoonEntityModel(val root: ModelPart) : AgeableHierarchicalModel<Raccoon
     }
 
     private fun tail(entity: RaccoonEntity, ageInTicks: Float) {
-        when (RaccoonStates.entries[entity.state]) {
-            RaccoonStates.Idle, RaccoonStates.Sneeze -> if (ageInTicks % 100 < 10)
+        when (entity.state) {
+            RaccoonStates.IDLE, RaccoonStates.SNEEZE -> if (ageInTicks % 100 < 10)
                 tail.yRot += sin(ageInTicks * (Math.PI.toFloat() / 5f))
 
-            RaccoonStates.Sitting, RaccoonStates.Sleeping -> {} /* no reaction */
-            RaccoonStates.Washing -> { /* excited ones */
+            RaccoonStates.SITTING, RaccoonStates.SLEEPING -> {} /* no reaction */
+            RaccoonStates.WASHING -> { /* excited ones */
                 if (ageInTicks % 30 < 10) {
                     tail.yRot += sin(ageInTicks * (Math.PI.toFloat() / 5f))
                 } else {
