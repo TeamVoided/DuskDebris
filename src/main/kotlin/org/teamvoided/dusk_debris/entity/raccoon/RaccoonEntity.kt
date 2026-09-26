@@ -32,7 +32,7 @@ import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.data.tags.DuskEntityTypeTags
 import org.teamvoided.dusk_debris.data.tags.DuskItemTags
 import org.teamvoided.dusk_debris.entity.goal.raccoon.*
-import org.teamvoided.dusk_debris.entity.raccoon.types.RaccoonAlignment.Companion.getPreyTargets
+import org.teamvoided.dusk_debris.entity.raccoon.RaccoonAlignment.Companion.getPreyTargets
 import org.teamvoided.dusk_debris.init.DuskAttachmentTypes
 import org.teamvoided.dusk_debris.init.DuskEntities
 import org.teamvoided.dusk_debris.init.DuskRegistryKeys
@@ -98,28 +98,28 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
 
     override fun addAdditionalSaveData(tag: CompoundTag) {
         super.addAdditionalSaveData(tag)
-        tag.putInt("hunger", hunger)
-        tag.putInt("eat_ticks", eatTicks)
-        tag.putBoolean("has_wash_food", hasWashedFood)
-        tag.putInt("state", state)
+        tag.putInt(KEY_HUNGER, hunger)
+        tag.putInt(KEY_EAT_TICKS, eatTicks)
+        tag.putBoolean(KEY_HAS_WASHED_FOOD, hasWashedFood)
+        tag.putInt(KEY_STATE, state)
         if (barrelPos != DEFAULT_BARREL_POS) {
             val barrelPosTag = CompoundTag()
             barrelPosTag.putInt("x", barrelPos.x)
             barrelPosTag.putInt("y", barrelPos.y)
             barrelPosTag.putInt("z", barrelPos.z)
-            tag.put("barrel_pos", barrelPosTag)
+            tag.put(KEY_BARREL_POS, barrelPosTag)
         }
         raccoonData.addAdditionalSaveData(tag)
     }
 
     override fun readAdditionalSaveData(tag: CompoundTag) {
         super.readAdditionalSaveData(tag)
-        if (tag.contains("hunger")) hunger = tag.getInt("hunger")
-        if (tag.contains("eat_ticks")) eatTicks = tag.getInt("eat_ticks")
-        if (tag.contains("has_washed_food")) hasWashedFood = tag.getBoolean("has_washed_food")
-        if (tag.contains("state")) state = tag.getInt("state")
-        if (tag.contains("barrel_pos", Tag.TAG_COMPOUND.toInt())) {
-            val barrelPosTag = tag.getCompound("barrel_pos")
+        if (tag.contains(KEY_HUNGER)) hunger = tag.getInt(KEY_HUNGER)
+        if (tag.contains(KEY_EAT_TICKS)) eatTicks = tag.getInt(KEY_EAT_TICKS)
+        if (tag.contains(KEY_HAS_WASHED_FOOD)) hasWashedFood = tag.getBoolean(KEY_HAS_WASHED_FOOD)
+        if (tag.contains(KEY_STATE)) state = tag.getInt(KEY_STATE)
+        if (tag.contains(KEY_BARREL_POS, Tag.TAG_COMPOUND.toInt())) {
+            val barrelPosTag = tag.getCompound(KEY_BARREL_POS)
             barrelPos = BlockPos(barrelPosTag.getInt("x"), barrelPosTag.getInt("y"), barrelPosTag.getInt("z"))
         }
         raccoonData.readAdditionalSaveData(tag)
@@ -323,7 +323,7 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
 
     fun canMove(): Boolean = RaccoonStates.entries[state].canMove()
 
-    override fun onSyncedDataUpdated(entityDataAccessor: EntityDataAccessor<*>?) {
+    override fun onSyncedDataUpdated(entityDataAccessor: EntityDataAccessor<*>) {
         if (DATA_STATE == entityDataAccessor) {
             resetAnimations()
             when (RaccoonStates.entries[state]) {
@@ -409,6 +409,7 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
             SynchedEntityData.defineId(RaccoonEntity::class.java, EntityDataSerializers.INT)
         private val BARREL_POS: EntityDataAccessor<BlockPos> =
             SynchedEntityData.defineId(RaccoonEntity::class.java, EntityDataSerializers.BLOCK_POS)
+
         val DEFAULT_BARREL_POS = BlockPos(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE)
         const val MAX_HUNGER = 20
 
