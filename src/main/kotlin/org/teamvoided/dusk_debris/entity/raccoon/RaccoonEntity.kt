@@ -78,8 +78,9 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
         goalSelector.addGoal(9, RaccoonWanderGoal(this, 1.0))
         goalSelector.addGoal(9, RaccoonSearchForItemsGoal(this))
         goalSelector.addGoal(9, StoreItemsGoal(this, 1.2, 0))
-        goalSelector.addGoal(10, LookAtPlayerGoal(this, Player::class.java, 8F))
-        goalSelector.addGoal(10, RandomLookAroundGoal(this))
+        goalSelector.addGoal(10, SneezeGoal(this))
+        goalSelector.addGoal(11, LookAtPlayerGoal(this, Player::class.java, 8F))
+        goalSelector.addGoal(11, RandomLookAroundGoal(this))
         //goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))
 
         // Pacifist alignment? or rename it to Pacificist or PaciFist
@@ -87,7 +88,6 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
         targetSelector.addGoal(
             5, NearestAttackableTargetGoal(this, LivingEntity::class.java, 40, false, false) { this.getPreyTargets(it) }
         )
-
     }
 
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {

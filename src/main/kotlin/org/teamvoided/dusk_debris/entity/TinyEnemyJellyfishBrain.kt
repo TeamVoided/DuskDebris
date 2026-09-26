@@ -66,7 +66,7 @@ object TinyEnemyJellyfishBrain {
                             Pair.of(SetWalkTargetFromLookTarget.create(1f, 3), 2)
                         )
                     )
-                ),
+                )
             )
         )
     }

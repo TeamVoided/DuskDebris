@@ -28,9 +28,8 @@ import org.teamvoided.dusk_debris.init.DuskItems
 class TinyEnemyJellyfishEntity(entityType: EntityType<TinyEnemyJellyfishEntity>, world: Level) :
     AbstractJellyfishEntity(entityType, world), Pickupable {
 
-
     init {
-        this.moveControl = FlyingMoveControl(this, 10, true)
+        moveControl = FlyingMoveControl(this, 10, true)
     }
 
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
@@ -45,7 +44,7 @@ class TinyEnemyJellyfishEntity(entityType: EntityType<TinyEnemyJellyfishEntity>,
 
     override fun readAdditionalSaveData(nbt: CompoundTag) {
         super.readAdditionalSaveData(nbt)
-        placed = nbt.getBoolean("FromBucket")
+        if (nbt.contains("FromBucket")) placed = nbt.getBoolean("FromBucket")
     }
 
     override fun createNavigation(world: Level): PathNavigation {
@@ -65,10 +64,10 @@ class TinyEnemyJellyfishEntity(entityType: EntityType<TinyEnemyJellyfishEntity>,
     }
 
     override fun customServerAiStep() {
-        this.level().profiler.push("tinyEnemyJellyfishBrain")
-        (brain as Brain<TinyEnemyJellyfishEntity>).tick(this.level() as ServerLevel, this)
-        this.level().profiler.pop()
-        this.level().profiler.push("tinyEnemyJellyfishActivityUpdate")
+        level().profiler.push("tinyEnemyJellyfishBrain")
+        (brain as Brain<TinyEnemyJellyfishEntity>).tick(level() as ServerLevel, this)
+        level().profiler.pop()
+        level().profiler.push("tinyEnemyJellyfishActivityUpdate")
         TinyEnemyJellyfishBrain.updateActivities(this)
         super.customServerAiStep()
     }
@@ -86,7 +85,7 @@ class TinyEnemyJellyfishEntity(entityType: EntityType<TinyEnemyJellyfishEntity>,
     }
 
     override fun startPersistentAngerTimer() {
-        this.remainingPersistentAngerTime = ANGER_TIME_RANGE.sample(this.random)
+        remainingPersistentAngerTime = ANGER_TIME_RANGE.sample(random)
     }
 
     override fun shouldDropExperience(): Boolean = false
@@ -95,7 +94,7 @@ class TinyEnemyJellyfishEntity(entityType: EntityType<TinyEnemyJellyfishEntity>,
 
     override fun requiresCustomPersistence(): Boolean = super.requiresCustomPersistence() || placed
 
-    override fun removeWhenFarAway(distanceSquared: Double): Boolean = !placed && !this.hasCustomName()
+    override fun removeWhenFarAway(distanceSquared: Double): Boolean = !placed && !hasCustomName()
 
     override var placed: Boolean
         get() = entityData.get(PLACED)
@@ -112,10 +111,8 @@ class TinyEnemyJellyfishEntity(entityType: EntityType<TinyEnemyJellyfishEntity>,
         Pickupable.tryPickup(player, hand, this).orElse(super.mobInteract(player, hand))
 
     override fun updateAnimations() {
-        if (hurtTime > 0)
-            this.idleAnimationState.stop()
-        else
-            this.idleAnimationState.startIfStopped(this.tickCount)
+        if (hurtTime > 0) idleAnimationState.stop()
+        else idleAnimationState.startIfStopped(tickCount)
     }
 
 
@@ -134,9 +131,9 @@ class TinyEnemyJellyfishEntity(entityType: EntityType<TinyEnemyJellyfishEntity>,
             val velZ = random.nextGaussian() * 0.02
             level().addParticle(
                 ParticleTypes.SONIC_BOOM,
-                this.getRandomX(1.0),
-                this.y + this.bbHeight / 2,
-                this.getRandomZ(1.0),
+                getRandomX(1.0),
+                y + bbHeight / 2,
+                getRandomZ(1.0),
                 velX,
                 velY,
                 velZ
