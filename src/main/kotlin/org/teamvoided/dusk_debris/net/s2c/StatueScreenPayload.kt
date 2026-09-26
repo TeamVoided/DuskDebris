@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.net
+package org.teamvoided.dusk_debris.net.s2c
 
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
@@ -16,7 +16,7 @@ class StatueScreenPayload(val pos: BlockPos) : CustomPacketPayload {
 
     companion object {
         val CODEC: StreamCodec<FriendlyByteBuf, StatueScreenPayload> =
-            CustomPacketPayload.codec<FriendlyByteBuf, StatueScreenPayload>(StatueScreenPayload::write, ::StatueScreenPayload)
+            CustomPacketPayload.codec(StatueScreenPayload::write, ::StatueScreenPayload)
         val ID = CustomPacketPayload.Type<StatueScreenPayload>(id("statue_screen_payload"))
     }
 }

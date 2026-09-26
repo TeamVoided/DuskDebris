@@ -1,5 +1,6 @@
 package org.teamvoided.dusk_debris.entity.raccoon
 
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Holder
 import net.minecraft.core.component.DataComponents
@@ -7,20 +8,22 @@ import net.minecraft.core.particles.ItemParticleOption
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
+import net.minecraft.network.chat.Component
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier
 import net.minecraft.world.entity.ai.goal.*
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
 import net.minecraft.world.entity.animal.Animal
 import net.minecraft.world.entity.animal.Fox
 import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.entity.monster.Guardian
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
@@ -33,22 +36,30 @@ import org.teamvoided.dusk_debris.entity.raccoon.types.RaccoonAlignment.Companio
 import org.teamvoided.dusk_debris.init.DuskAttachmentTypes
 import org.teamvoided.dusk_debris.init.DuskEntities
 import org.teamvoided.dusk_debris.init.DuskRegistryKeys
+import org.teamvoided.dusk_debris.net.s2c.RaccoonBrainInfoPayload
+import org.teamvoided.dusk_debris.util.text
 import kotlin.math.min
 
-class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, world),
+class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(type, world),
     VariantHolder<Holder<RaccoonVariant>> {
-    var eatTicks: Int = 0
-    var hunger: Int = 0
-    var hasWashedFood: Boolean = false
-    var raccoonData: RaccoonData
 
-    val washingAnimationState: AnimationState = AnimationState()
-    val sneezingAnimationState: AnimationState = AnimationState()
+    var eatTicks = 0
+    var hunger = 0
+    var hasWashedFood = false
+    var raccoonData = RaccoonData(random)
+
+    val washingAnimationState = AnimationState()
+    val sneezingAnimationState = AnimationState()
+
+    /**
+     * Used to store debug info on the client
+     */
+    var displayBrainData: MutableList<Component> = mutableListOf()
+    var hideDebug = false
 
     init {
         setCanPickUpLoot(true)
         shouldDropLoot()
-        raccoonData = RaccoonData(random)
     }
 
     override fun registerGoals() {
@@ -56,7 +67,8 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         goalSelector.addGoal(2, BreedGoal(this, 1.0))
         goalSelector.addGoal(
             4, AvoidEntityGoal(this, LivingEntity::class.java, 8f, 1.6, 1.4)
-            { it.type.`is`(DuskEntityTypeTags.RACCOON_RETREATS) })
+            { it.type.`is`(DuskEntityTypeTags.RACCOON_RETREATS) }
+        )
         goalSelector.addGoal(6, SeekShelterGoal(this, 1.25))
         goalSelector.addGoal(7, ClaimBarrelGoal(this, 1.2, 12))
         goalSelector.addGoal(7, WashFoodGoal(this, 1.2, 12))
@@ -77,7 +89,6 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         )
 
     }
-
 
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
         super.defineSynchedData(builder)
@@ -115,12 +126,25 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
     }
 
     override fun tick() {
+        sendRacoonData()
         super.tick()
         if (!level().isClientSide) {
             if (barrelPos != DEFAULT_BARREL_POS && !level().getBlockState(barrelPos).`is`(Blocks.BARREL)) {
                 forgetBarrel()
             }
         }
+    }
+
+    override fun interactAt(player: Player, vec3: Vec3, hand: InteractionHand): InteractionResult {
+        if (hand == InteractionHand.MAIN_HAND) {
+            val stack = player.getItemInHand(hand)
+            if (stack.isEmpty) {
+                hideDebug = !hideDebug
+                return InteractionResult.SUCCESS
+            }
+        }
+
+        return super.interactAt(player, vec3, hand)
     }
 
     override fun aiStep() {
@@ -349,7 +373,38 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         get() = entityData[BARREL_POS]
         set(value) = entityData.set(BARREL_POS, value)
 
+    fun sendRacoonData() {
+        if (level().isClientSide || hideDebug) {
+            return
+        }
+
+        val data = mutableListOf<Component>()
+        buildRacoonInfo(data)
+
+        for (player in level().players()) {
+            if (player is ServerPlayer) {
+                ServerPlayNetworking.send(player, RaccoonBrainInfoPayload(id, data))
+            }
+        }
+
+    }
+
+    fun buildRacoonInfo(list: MutableList<Component>) {
+        list.add(text("Barrel Pos: ${if (barrelPos == DEFAULT_BARREL_POS) "[ None ]" else barrelPos}"))
+        list.add(text("Eat Ticks: $eatTicks"))
+        list.add(text("Hunger: $hunger"))
+        list.add(text("Has Washed Food: $hasWashedFood"))
+        list.add(text("Data: $raccoonData"))
+        list.add(text("Current Goals: "))
+        for (goal in goalSelector.availableGoals) {
+            if (goal.isRunning) {
+                list.add(text("  - ${goal.goal}"))
+            }
+        }
+    }
+
     companion object {
+
         private val DATA_STATE: EntityDataAccessor<Int> =
             SynchedEntityData.defineId(RaccoonEntity::class.java, EntityDataSerializers.INT)
         private val BARREL_POS: EntityDataAccessor<BlockPos> =
@@ -363,5 +418,6 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         fun createAttributes(): AttributeSupplier.Builder {
             return Fox.createAttributes()
         }
+
     }
 }

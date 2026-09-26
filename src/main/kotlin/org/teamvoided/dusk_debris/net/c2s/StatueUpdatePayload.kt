@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.net
+package org.teamvoided.dusk_debris.net.c2s
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.registries.BuiltInRegistries

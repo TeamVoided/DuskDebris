@@ -5,12 +5,15 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
-import org.teamvoided.dusk_debris.net.StatueScreenPayload
-import org.teamvoided.dusk_debris.net.StatueUpdatePayload
+import org.teamvoided.dusk_debris.net.s2c.StatueScreenPayload
+import org.teamvoided.dusk_debris.net.c2s.StatueUpdatePayload
+import org.teamvoided.dusk_debris.net.s2c.RaccoonBrainInfoPayload
 
 object DuskNet {
+
     fun init() {
         PayloadTypeRegistry.playS2C().register(StatueScreenPayload.ID, StatueScreenPayload.CODEC)
+        PayloadTypeRegistry.playS2C().register(RaccoonBrainInfoPayload.ID, RaccoonBrainInfoPayload.CODEC)
         PayloadTypeRegistry.playC2S().register(StatueUpdatePayload.ID, StatueUpdatePayload.CODEC)
         ServerPlayNetworking.registerGlobalReceiver(StatueUpdatePayload.ID, ::updateStatue)
     }
@@ -25,4 +28,5 @@ object DuskNet {
         ctx.player().connection.send(ClientboundBlockEntityDataPacket.create(statue, BlockEntity::saveCustomOnly))
 
     }
+
 }

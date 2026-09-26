@@ -31,7 +31,6 @@ enum class RaccoonAlignment {
         }
 
         fun RaccoonEntity.getPreyTargets(entity: LivingEntity): Boolean {
-            this.customName = Component.literal(this.raccoonData.toString())
             return when (RaccoonAlignment.entries[this.raccoonData.alignment]) {
                 Pacifist -> false
                 HuntsForFood, Retaliates -> prey(entity, DuskEntityTypeTags.RACCOON_ATTACKS)

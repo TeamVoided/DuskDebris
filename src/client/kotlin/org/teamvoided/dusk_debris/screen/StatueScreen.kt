@@ -7,7 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.Entity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
-import org.teamvoided.dusk_debris.net.StatueUpdatePayload
+import org.teamvoided.dusk_debris.net.c2s.StatueUpdatePayload
 import org.teamvoided.dusk_debris.screen.widget.EntityModelListWidget
 import org.teamvoided.dusk_debris.screen.widget.EntityModelWidget
 

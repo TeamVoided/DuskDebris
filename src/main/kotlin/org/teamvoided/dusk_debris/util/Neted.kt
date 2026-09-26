@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
-import org.teamvoided.dusk_debris.net.StatueScreenPayload
+import org.teamvoided.dusk_debris.net.s2c.StatueScreenPayload
 
 
 fun Player.openStatuesScreen(statue: StatueBlockEntity) {
