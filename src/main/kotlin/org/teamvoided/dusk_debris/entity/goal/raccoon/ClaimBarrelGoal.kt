@@ -8,7 +8,7 @@ class ClaimBarrelGoal(raccoon: RaccoonEntity, speed: Double, range: Int) :
     MoveToBarrelGoal(raccoon, speed, range) {
 
     override fun onTargetReached() {
-        raccoon.barrelPos = blockPos
+        raccoon.barrelPos = blockPos.immutable()
         raccoon.level().broadcastEntityEvent(raccoon, EntityEvent.VILLAGER_HAPPY)
     }
 
