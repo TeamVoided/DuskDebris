@@ -1,6 +1,8 @@
 package org.teamvoided.dusk_debris.entity.raccoon.types
 
+import net.minecraft.network.chat.Component
 import net.minecraft.tags.TagKey
+import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.Turtle
@@ -15,11 +17,22 @@ enum class RaccoonAlignment {
     Retaliates,
     HuntsMany,
     Evil;
+    // Should giving them a potion of strength/weakness increase/decrease the alignment?
 
+    companion object {
+        const val NAME = "alignment"
+        fun align(random: RandomSource): Int {
+            val num = random.nextInt(100)
+            if (num < 50) return Retaliates.ordinal
+            if (num < 73) return HuntsForFood.ordinal
+            if (num < 96) return HuntsMany.ordinal
+            if (num < 98) return Pacifist.ordinal
+            return Evil.ordinal
+        }
 
-    companion object { // should giving them a potion of strength/weakness increase/decrease the alignment
-        fun RaccoonEntity.getPreyTargets(alignment: RaccoonAlignment, entity: LivingEntity): Boolean {
-            return when (alignment) {
+        fun RaccoonEntity.getPreyTargets(entity: LivingEntity): Boolean {
+            this.customName = Component.literal(this.raccoonData.toString())
+            return when (RaccoonAlignment.entries[this.raccoonData.alignment]) {
                 Pacifist -> false
                 HuntsForFood, Retaliates -> prey(entity, DuskEntityTypeTags.RACCOON_ATTACKS)
                 HuntsMany -> prey(entity, DuskEntityTypeTags.RACCOON_ATTACKS_MANY)

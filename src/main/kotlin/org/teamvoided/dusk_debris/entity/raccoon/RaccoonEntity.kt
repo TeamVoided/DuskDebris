@@ -15,12 +15,12 @@ import net.minecraft.util.Mth
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier
 import net.minecraft.world.entity.ai.goal.*
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
 import net.minecraft.world.entity.animal.Animal
 import net.minecraft.world.entity.animal.Fox
-import net.minecraft.world.entity.animal.Turtle
 import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.entity.monster.Slime
+import net.minecraft.world.entity.monster.Guardian
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
@@ -29,7 +29,6 @@ import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.data.tags.DuskEntityTypeTags
 import org.teamvoided.dusk_debris.data.tags.DuskItemTags
 import org.teamvoided.dusk_debris.entity.goal.raccoon.*
-import org.teamvoided.dusk_debris.entity.raccoon.types.RaccoonAlignment
 import org.teamvoided.dusk_debris.entity.raccoon.types.RaccoonAlignment.Companion.getPreyTargets
 import org.teamvoided.dusk_debris.init.DuskAttachmentTypes
 import org.teamvoided.dusk_debris.init.DuskEntities
@@ -38,9 +37,10 @@ import kotlin.math.min
 
 class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, world),
     VariantHolder<Holder<RaccoonVariant>> {
-    var eatTicks = 0
-    var hunger = 0
-    var hasWashedFood = false
+    var eatTicks: Int = 0
+    var hunger: Int = 0
+    var hasWashedFood: Boolean = false
+    var raccoonData: RaccoonData
 
     val washingAnimationState: AnimationState = AnimationState()
     val sneezingAnimationState: AnimationState = AnimationState()
@@ -48,6 +48,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
     init {
         setCanPickUpLoot(true)
         shouldDropLoot()
+        raccoonData = RaccoonData(random)
     }
 
     override fun registerGoals() {
@@ -66,18 +67,20 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
         goalSelector.addGoal(9, StoreItemsGoal(this, 1.2, 0))
         goalSelector.addGoal(10, LookAtPlayerGoal(this, Player::class.java, 8F))
         goalSelector.addGoal(10, RandomLookAroundGoal(this))
-        goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))
+        //goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))
 
+        // Pacifist alignment? or rename it to Pacificist or PaciFist
+        //targetSelector.addGoal(1, HurtByTargetGoal(this, LivingEntity::class.java).setAlertOthers())
         targetSelector.addGoal(
-            5, NearestAttackableTargetGoal(this, LivingEntity::class.java, 40, false, false)
-            { this.getPreyTargets(RaccoonAlignment.HuntsMany, it) }
+            5, NearestAttackableTargetGoal(this, LivingEntity::class.java, 40, false, false) { this.getPreyTargets(it) }
         )
+
     }
 
 
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
         super.defineSynchedData(builder)
-        builder.define(BARREL_POS, DEFAULT_BARREL_POS)
+        builder.define(BARREL_POS, DEFAULT_BARREL_POS) //does barrel pos even need to be synched?
         builder.define(DATA_STATE, RaccoonStates.Idle.ordinal)
     }
 
@@ -94,6 +97,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
             barrelPosTag.putInt("z", barrelPos.z)
             tag.put("barrel_pos", barrelPosTag)
         }
+        raccoonData.addAdditionalSaveData(tag)
     }
 
     override fun readAdditionalSaveData(tag: CompoundTag) {
@@ -106,6 +110,7 @@ class RaccoonEntity(type: EntityType<out Animal>, world: Level) : Animal(type, w
             val barrelPosTag = tag.getCompound("barrel_pos")
             barrelPos = BlockPos(barrelPosTag.getInt("x"), barrelPosTag.getInt("y"), barrelPosTag.getInt("z"))
         }
+        raccoonData.readAdditionalSaveData(tag)
     }
 
     override fun tick() {
