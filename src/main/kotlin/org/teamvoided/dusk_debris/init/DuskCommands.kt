@@ -11,6 +11,7 @@ import net.minecraft.core.Holder
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.Display.BillboardConstraints
 import net.minecraft.world.entity.Display.TextDisplay
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.Mob
@@ -143,12 +144,14 @@ object DuskCommands {
         return 1
     }
 
-    private fun <T : Mob> lobotomize(entity: T): T {
+    private fun <T : Entity> lobotomize(entity: T): T {
         entity.isInvulnerable = true
-        entity.isNoAi = true
         entity.isSilent = true
         entity.yRot = 0f
         entity.addTag("summoned_with_command")
+        if (entity is Mob) {
+            entity.isNoAi = true
+        }
         return entity
     }
 }
