@@ -10,6 +10,7 @@
     "ItemInHandLayerMixin",
     "LivingEntityRendererMixin",
     "ModelMixin",
+    "biome_color_provider.BiomeColorsMixin",
     "directional_sculk.LevelRendererMixin",
     "fluid_tag.CameraMixin",
     "fluid_tag.water.BubbleColumnUpParticleMixin",

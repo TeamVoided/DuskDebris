@@ -5,6 +5,9 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
 import net.minecraft.client.renderer.blockentity.ChestRenderer
 import net.minecraft.core.BlockPos
+import net.minecraft.world.level.LevelAccessor
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity
 import org.teamvoided.dusk_debris.entity.block.CelestalBellBlockEntityRenderer
 import org.teamvoided.dusk_debris.entity.block.StatueBlockEntityRenderer
@@ -15,8 +18,10 @@ import org.teamvoided.dusks_and_dungeons.block.entity.ChestOSoulsBlockEntity
 import org.teamvoided.dusks_and_dungeons.entity.block.QuarterBlockPileBlockEntityRenderer
 
 object DuskBlockEntitiesClient {
-    private var decoratedPotBlockEntity = DecoratedPotBlockEntity(BlockPos.ZERO, DuskBlocks.POT_O_SCREAMS.defaultBlockState())
-    private var chestOSoulsBlockEntity = ChestOSoulsBlockEntity(BlockPos.ZERO, DuskBlocks.CHEST_O_SOULS.defaultBlockState())
+    private var decoratedPotBlockEntity =
+        DecoratedPotBlockEntity(BlockPos.ZERO, DuskBlocks.POT_O_SCREAMS.defaultBlockState())
+    private var chestOSoulsBlockEntity =
+        ChestOSoulsBlockEntity(BlockPos.ZERO, DuskBlocks.CHEST_O_SOULS.defaultBlockState())
 
     fun init() {
 //        BuiltinItemRendererRegistry.INSTANCE.register(DuskItems.STRAY_SKULL)
