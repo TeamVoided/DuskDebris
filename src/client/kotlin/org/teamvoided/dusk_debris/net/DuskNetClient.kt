@@ -1,17 +1,32 @@
 package org.teamvoided.dusk_debris.net
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
+import org.teamvoided.dusk_debris.net.s2c.BiomeTintScreenPayload
 import org.teamvoided.dusk_debris.net.s2c.RaccoonBrainInfoPayload
 import org.teamvoided.dusk_debris.net.s2c.StatueScreenPayload
+import org.teamvoided.dusk_debris.screen.BiomeSelectScreen
 import org.teamvoided.dusk_debris.screen.StatueScreen
 
 object DuskNetClient {
 
     fun init() {
+        ClientPlayNetworking.registerGlobalReceiver(BiomeTintScreenPayload.ID, ::openBiomeTintScreen)
         ClientPlayNetworking.registerGlobalReceiver(StatueScreenPayload.ID, ::openStatueScreen)
         ClientPlayNetworking.registerGlobalReceiver(RaccoonBrainInfoPayload.ID, ::updateRaccoonData)
+
+
+    }
+
+    fun openBiomeTintScreen(payload: BiomeTintScreenPayload, ctx: ClientPlayNetworking.Context) {
+        val client = ctx.client() ?: return
+        val level = ctx.player().level() ?: return
+        val biomeTinter = level.getBlockEntity(payload.pos) ?: return
+        if (biomeTinter !is BiomeTintBlockEntity) return
+
+        client.setScreen(BiomeSelectScreen(biomeTinter))
     }
 
     fun openStatueScreen(payload: StatueScreenPayload, ctx: ClientPlayNetworking.Context) {

@@ -1,15 +1,13 @@
 package org.teamvoided.dusk_debris.util
 
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.BiomeColors
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Holder
-import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.ColorResolver
 import net.minecraft.world.level.LevelAccessor
-import net.minecraft.world.level.biome.Biome
-import net.minecraft.world.level.biome.Biomes
 import net.minecraft.world.level.block.Blocks
-import kotlin.jvm.optionals.getOrNull
+import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
+
 
 val test = BlockPos(100, 100, 100)
 fun warpColors(blockPos: BlockPos, colorResolver: ColorResolver): Int? {
@@ -22,11 +20,17 @@ fun warpColors(blockPos: BlockPos, colorResolver: ColorResolver): Int? {
     }
 }
 
+
 val BIOME_BLOCK_LOCATIONS = mutableSetOf<BlockPos>()
-fun getColor(level: LevelAccessor, blockPos: BlockPos, colorResolver: ColorResolver): Int? {
+fun warpColors(level: ClientLevel, blockPos: BlockPos, colorResolver: ColorResolver): Int? {
     val closestBlock = getClosestTo(blockPos) ?: return null
     if (closestBlock.distSqr(blockPos) > 256) return null
-    val biome = level.registryAccess().registry(Registries.BIOME).getOrNull()?.get(Biomes.BADLANDS) ?: return null
+    val tinter = level.getBlockEntity(closestBlock)
+    if (tinter !is BiomeTintBlockEntity) {
+        BIOME_BLOCK_LOCATIONS.remove(blockPos)
+        return null
+    }
+    val biome = tinter.biome?.value() ?: return null
     return when (colorResolver) {
         BiomeColors.GRASS_COLOR_RESOLVER -> biome.getGrassColor(blockPos.x.toDouble(), blockPos.z.toDouble())
         BiomeColors.FOLIAGE_COLOR_RESOLVER -> biome.foliageColor

@@ -23,6 +23,7 @@ import net.minecraft.world.level.material.PushReaction
 import org.teamvoided.dusk_debris.DuskDebris.id
 import org.teamvoided.dusk_debris.block.*
 import org.teamvoided.dusk_debris.block.big.BigLanternWithSpiralBlock
+import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
 import org.teamvoided.dusk_debris.block.sot.*
 import org.teamvoided.dusk_debris.block.throwable_bomb.BlunderbombBlock
 import org.teamvoided.dusk_debris.block.throwable_bomb.BonecallerBlock
@@ -1107,6 +1108,7 @@ object DuskBlocks {
     // endregion
 
 
+    val BIOME_TINTER = register("biome_tinter", BiomeTintBlock(ofFullCopy(STONE)))
     val STATUE = register("statue", StatueBlock(ofFullCopy(STONE)))
 
     fun init() {

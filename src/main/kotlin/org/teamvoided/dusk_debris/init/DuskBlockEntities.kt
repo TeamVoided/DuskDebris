@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.teamvoided.dusk_debris.DuskDebris.id
+import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
 import org.teamvoided.dusk_debris.block.entity.BunnyGraveBlockEntity
 import org.teamvoided.dusk_debris.block.entity.DuskChestBlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
@@ -73,6 +74,7 @@ object DuskBlockEntities {
         )
     )
 
+    val BIOME_TINTER = register("biome_tinter", ::BiomeTintBlockEntity, DuskBlocks.BIOME_TINTER)
     val STATUE = register("statue", ::StatueBlockEntity, DuskBlocks.STATUE)
     val STACKED_CHALICE = register("stacked_chalice", ::StackedChaliceBlockEntity, DuskBlocks.STACKED_CHALICE)
 

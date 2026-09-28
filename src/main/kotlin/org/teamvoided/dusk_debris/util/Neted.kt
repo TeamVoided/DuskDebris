@@ -5,7 +5,9 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntity
+import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
+import org.teamvoided.dusk_debris.net.s2c.BiomeTintScreenPayload
 import org.teamvoided.dusk_debris.net.s2c.StatueScreenPayload
 
 
@@ -13,5 +15,12 @@ fun Player.openStatuesScreen(statue: StatueBlockEntity) {
     if (this is ServerPlayer) {
         this.connection.send(ClientboundBlockEntityDataPacket.create(statue, BlockEntity::saveCustomOnly))
         ServerPlayNetworking.send(this, StatueScreenPayload(statue.blockPos))
+    }
+}
+
+fun Player.openBiomeScreen(biomeTinter: BiomeTintBlockEntity) {
+    if (this is ServerPlayer) {
+        this.connection.send(ClientboundBlockEntityDataPacket.create(biomeTinter, BlockEntity::saveCustomOnly))
+        ServerPlayNetworking.send(this, BiomeTintScreenPayload(biomeTinter.blockPos))
     }
 }

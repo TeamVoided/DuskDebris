@@ -11,7 +11,7 @@ import org.teamvoided.dusk_debris.net.c2s.StatueUpdatePayload
 import org.teamvoided.dusk_debris.screen.widget.EntityModelListWidget
 import org.teamvoided.dusk_debris.screen.widget.EntityModelWidget
 
-class StatueScreen(val statue: StatueBlockEntity) : Screen(TITLE) {
+class StatueScreen(val statue: StatueBlockEntity) : Screen(TITLE),LayoutProvider {
     var entity: Entity? = null
     var entityWidget: EntityModelWidget? = null
 //    var test: EntityModelWidget? = null
@@ -60,6 +60,10 @@ class StatueScreen(val statue: StatueBlockEntity) : Screen(TITLE) {
     override fun repositionElements() {
         this.layout.arrangeElements()
         this.modelList?.updateSize(this.width, this.layout)
+    }
+
+    override fun layout(): HeaderAndFooterLayout {
+        return layout
     }
 
     companion object {

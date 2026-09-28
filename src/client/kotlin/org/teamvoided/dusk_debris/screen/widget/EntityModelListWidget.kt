@@ -9,14 +9,15 @@ import net.minecraft.client.gui.components.ContainerObjectSelectionList
 import net.minecraft.client.gui.components.events.GuiEventListener
 import net.minecraft.client.gui.narration.NarratableEntry
 import net.minecraft.client.gui.screens.Screen
+import org.teamvoided.dusk_debris.screen.LayoutProvider
 import org.teamvoided.dusk_debris.screen.StatueScreen
 import java.util.*
 
 
 @Environment(EnvType.CLIENT)
-class EntityModelListWidget(client: Minecraft?, width: Int, var parent: StatueScreen) :
+class EntityModelListWidget(client: Minecraft?, width: Int, var parent: LayoutProvider) :
     ContainerObjectSelectionList<EntityModelListWidget.EntityModelEntry>(
-        client, width, parent.layout.contentHeight, parent.layout.headerHeight, ROW_HEIGHT
+        client, width, parent.layout().contentHeight, parent.layout().headerHeight, ROW_HEIGHT
     ) {
     companion object {
         private const val ROW_HEIGHT = 84
@@ -38,11 +39,11 @@ class EntityModelListWidget(client: Minecraft?, width: Int, var parent: StatueSc
     }
 
     fun addEntry(first: AbstractWidget, second: AbstractWidget?) {
-        this.addEntry(EntityModelEntry.Companion.create(first, second, this.parent))
+        this.addEntry(EntityModelEntry.Companion.create(first, second, this.parent.self()))
     }
 
     fun addEntry(first: AbstractWidget) {
-        this.addEntry(EntityModelEntry.Companion.create(listOf(first), this.parent))
+        this.addEntry(EntityModelEntry.Companion.create(listOf(first), this.parent.self()))
     }
 
     fun getHoveredButton(mouseX: Double, mouseY: Double): Optional<GuiEventListener> {
