@@ -12,28 +12,33 @@ import net.minecraft.world.level.block.state.BlockState
 import org.teamvoided.dusk_debris.init.DuskBlockEntities.STATUE
 import kotlin.jvm.optionals.getOrNull
 
+
 class StatueBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(STATUE, pos, state) {
+
     var entityType: EntityType<*> = EntityType.BREEZE
 
-    override fun saveAdditional(nbt: CompoundTag, lookupProvider: HolderLookup.Provider?) {
-        super.saveAdditional(nbt, lookupProvider)
-        val type = BuiltInRegistries.ENTITY_TYPE.byNameCodec().encodeStart(NbtOps.INSTANCE, entityType).result().getOrNull()
-        nbt.put("type", type)
+    override fun saveAdditional(tag: CompoundTag, provider: HolderLookup.Provider) {
+        super.saveAdditional(tag, provider)
+        val type =
+            BuiltInRegistries.ENTITY_TYPE.byNameCodec().encodeStart(NbtOps.INSTANCE, entityType).result().getOrNull()
+        if (type != null) {
+            tag.put(KEY_TYPE, type)
+        }
     }
 
-    override fun loadAdditional(nbt: CompoundTag, lookupProvider: HolderLookup.Provider?) {
-        super.loadAdditional(nbt, lookupProvider)
-        this.entityType =
-            BuiltInRegistries.ENTITY_TYPE.byNameCodec().decode(NbtOps.INSTANCE, nbt.get("type")).result().getOrNull()?.first
+    override fun loadAdditional(tag: CompoundTag, provider: HolderLookup.Provider) {
+        super.loadAdditional(tag, provider)
+        entityType =
+            BuiltInRegistries.ENTITY_TYPE.byNameCodec().decode(NbtOps.INSTANCE, tag.get(KEY_TYPE)).result()
+                .getOrNull()?.first
                 ?: EntityType.BREEZE
     }
 
-    override fun getUpdateTag(lookupProvider: HolderLookup.Provider): CompoundTag {
-        return this.saveCustomOnly(lookupProvider)
-    }
+    override fun getUpdateTag(provider: HolderLookup.Provider): CompoundTag = saveCustomOnly(provider)
 
-    override fun getUpdatePacket(): ClientboundBlockEntityDataPacket? {
-        return ClientboundBlockEntityDataPacket.create(this)
-    }
+    override fun getUpdatePacket(): ClientboundBlockEntityDataPacket = ClientboundBlockEntityDataPacket.create(this)
 
+    companion object {
+        const val KEY_TYPE = "type"
+    }
 }
