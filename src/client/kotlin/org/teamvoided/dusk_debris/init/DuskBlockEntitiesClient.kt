@@ -5,11 +5,9 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
 import net.minecraft.client.renderer.blockentity.ChestRenderer
 import net.minecraft.core.BlockPos
-import net.minecraft.world.level.LevelAccessor
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity
 import org.teamvoided.dusk_debris.entity.block.CelestalBellBlockEntityRenderer
+import org.teamvoided.dusk_debris.entity.block.DisplayBlockEntityRenderer
 import org.teamvoided.dusk_debris.entity.block.StatueBlockEntityRenderer
 import org.teamvoided.dusk_debris.entity.block.stone_chest.StoneChestBlockEntityRenderer
 import org.teamvoided.dusk_debris.entity.block.treasure_chest.TreasureChestBlockEntityRenderer
@@ -45,6 +43,7 @@ object DuskBlockEntitiesClient {
         }
 
         BlockEntityRenderers.register(DuskBlockEntities.STATUE, ::StatueBlockEntityRenderer)
+        BlockEntityRenderers.register(DuskBlockEntities.DISPLAY, ::DisplayBlockEntityRenderer)
         BlockEntityRenderers.register(DuskBlockEntities.STACKED_CHALICE, ::StackedChaliceBlockEntityRenderer)
 
     }

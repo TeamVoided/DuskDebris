@@ -23,7 +23,6 @@ import net.minecraft.world.level.material.PushReaction
 import org.teamvoided.dusk_debris.DuskDebris.id
 import org.teamvoided.dusk_debris.block.*
 import org.teamvoided.dusk_debris.block.big.BigLanternWithSpiralBlock
-import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
 import org.teamvoided.dusk_debris.block.sot.*
 import org.teamvoided.dusk_debris.block.throwable_bomb.BlunderbombBlock
 import org.teamvoided.dusk_debris.block.throwable_bomb.BonecallerBlock
@@ -43,7 +42,6 @@ import org.teamvoided.dusk_debris.data.worldgen.DuskConfiguredFeatures
 import org.teamvoided.dusk_debris.init.misc.DuskBlockSettings
 import org.teamvoided.dusk_debris.item.StrongScaffoldingItem
 import org.teamvoided.dusk_debris.util.*
-import org.teamvoided.dusks_and_dungeons.util.block.hoe
 
 @Suppress("MemberVisibilityCanBePrivate", "unused", "DEPRECATION")
 object DuskBlocks {
@@ -1110,6 +1108,7 @@ object DuskBlocks {
 
     val BIOME_TINTER = register("biome_tinter", BiomeTintBlock(ofFullCopy(STONE)))
     val STATUE = register("statue", StatueBlock(ofFullCopy(STONE)))
+    val DISPLAY = register("display", DisplayBlock(ofFullCopy(STONE)))
 
     fun init() {
         DuskBlockSetType.init()

@@ -6,8 +6,10 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
+import org.teamvoided.dusk_debris.block.entity.DisplayBlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
 import org.teamvoided.dusk_debris.net.c2s.BiomeTintUpdatePayload
+import org.teamvoided.dusk_debris.net.c2s.DisplayUpdatePayload
 import org.teamvoided.dusk_debris.net.c2s.StatueUpdatePayload
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload
 import org.teamvoided.dusk_debris.net.s2c.RaccoonBrainInfoPayload
@@ -24,6 +26,18 @@ object DuskNet {
 
         PayloadTypeRegistry.playC2S().register(StatueUpdatePayload.ID, StatueUpdatePayload.CODEC)
         ServerPlayNetworking.registerGlobalReceiver(StatueUpdatePayload.ID, ::updateStatue)
+
+        PayloadTypeRegistry.playC2S().register(DisplayUpdatePayload.ID, DisplayUpdatePayload.CODEC)
+        ServerPlayNetworking.registerGlobalReceiver(DisplayUpdatePayload.ID, ::updateDisplay)
+    }
+
+    private fun updateDisplay(payload: DisplayUpdatePayload, ctx: ServerPlayNetworking.Context) {
+        val state = payload.blockState
+        val world = ctx.player().level() ?: return
+        val display = world.getBlockEntity(payload.pos) ?: return
+        if (display !is DisplayBlockEntity) return
+        display.state = state
+        ctx.player().connection.send(display.updatePacket)
     }
 
     private fun updateStatue(payload: StatueUpdatePayload, ctx: ServerPlayNetworking.Context) {
@@ -33,7 +47,6 @@ object DuskNet {
         if (statue !is StatueBlockEntity) return
         statue.entityType = type
         ctx.player().connection.send(ClientboundBlockEntityDataPacket.create(statue, BlockEntity::saveCustomOnly))
-
     }
 
     private fun updateBiomeTint(payload: BiomeTintUpdatePayload, ctx: ServerPlayNetworking.Context) {

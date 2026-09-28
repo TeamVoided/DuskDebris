@@ -23,6 +23,7 @@ class BlockEntityScreenPayload(val pos: BlockPos, val id: ResourceLocation) : Cu
         )
 
         val STATUE_SCREEN = id("statue_screen")
+        val DISPLAY_SCREEN = id("display_screen")
         val BIOME_TINT_SCREEN = id("biome_tint_screen")
 
     }

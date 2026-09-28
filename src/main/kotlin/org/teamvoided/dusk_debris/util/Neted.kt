@@ -7,12 +7,17 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
+import org.teamvoided.dusk_debris.block.entity.DisplayBlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload
 
 
 fun Player.openStatuesScreen(statue: StatueBlockEntity) {
     sendOpenScreenPacket(statue, BlockEntityScreenPayload.STATUE_SCREEN)
+}
+
+fun Player.openDisplayScreen(statue: DisplayBlockEntity) {
+    sendOpenScreenPacket(statue, BlockEntityScreenPayload.DISPLAY_SCREEN)
 }
 
 fun Player.openBiomeScreen(biomeTinter: BiomeTintBlockEntity) {

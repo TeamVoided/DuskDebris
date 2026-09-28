@@ -10,11 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.teamvoided.dusk_debris.DuskDebris.id
-import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
-import org.teamvoided.dusk_debris.block.entity.BunnyGraveBlockEntity
-import org.teamvoided.dusk_debris.block.entity.DuskChestBlockEntity
-import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
-import org.teamvoided.dusk_debris.block.entity.TreasureChestBlockEntity
+import org.teamvoided.dusk_debris.block.entity.*
 import org.teamvoided.dusk_debris.block.sot.entity.StackedChaliceBlockEntity
 import org.teamvoided.dusks_and_dungeons.block.entity.*
 
@@ -74,9 +70,13 @@ object DuskBlockEntities {
         )
     )
 
+    val STACKED_CHALICE = register("stacked_chalice", ::StackedChaliceBlockEntity, DuskBlocks.STACKED_CHALICE)
+
     val BIOME_TINTER = register("biome_tinter", ::BiomeTintBlockEntity, DuskBlocks.BIOME_TINTER)
     val STATUE = register("statue", ::StatueBlockEntity, DuskBlocks.STATUE)
-    val STACKED_CHALICE = register("stacked_chalice", ::StackedChaliceBlockEntity, DuskBlocks.STACKED_CHALICE)
+
+    val DISPLAY = register("display", ::DisplayBlockEntity, DuskBlocks.DISPLAY)
+
 
     private fun <T : BlockEntity> register(
         id: String, factory: (BlockPos, BlockState) -> T, vararg blocks: Block,

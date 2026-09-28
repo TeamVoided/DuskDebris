@@ -3,13 +3,16 @@ package org.teamvoided.dusk_debris.net
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import org.teamvoided.dusk_debris.DuskDebris.log
 import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
+import org.teamvoided.dusk_debris.block.entity.DisplayBlockEntity
 import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload.Companion.STATUE_SCREEN
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload.Companion.BIOME_TINT_SCREEN
+import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload.Companion.DISPLAY_SCREEN
 import org.teamvoided.dusk_debris.net.s2c.RaccoonBrainInfoPayload
 import org.teamvoided.dusk_debris.screen.BiomeSelectScreen
+import org.teamvoided.dusk_debris.screen.DisplayBEScreen
 import org.teamvoided.dusk_debris.screen.StatueScreen
 
 object DuskNetClient {
@@ -31,6 +34,7 @@ object DuskNetClient {
         }
         val screen = when (payload.id) {
             STATUE_SCREEN -> StatueScreen(be as? StatueBlockEntity ?: return)
+            DISPLAY_SCREEN-> DisplayBEScreen(be as? DisplayBlockEntity ?: return)
             BIOME_TINT_SCREEN -> BiomeSelectScreen(be as? BiomeTintBlockEntity ?: return)
             else -> {
                 log.error("No screen found for packet with id: {}", payload.id)
