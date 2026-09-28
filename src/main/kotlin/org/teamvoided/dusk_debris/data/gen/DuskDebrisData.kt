@@ -46,7 +46,6 @@ class DuskDebrisData : DataGeneratorEntrypoint {
     }
 
     override fun buildRegistry(gen: RegistrySetBuilder) {
-        println("Start build registry")
         gen.add(Registries.BIOME, BiomeCreator::boostrap)
         gen.add(Registries.CONFIGURED_CARVER, ConfiguredCarverCreator::bootstrap)
         gen.add(Registries.CONFIGURED_FEATURE, ConfiguredFeatureCreator::bootstrap)
@@ -70,6 +69,5 @@ class DuskDebrisData : DataGeneratorEntrypoint {
         gen.add(DuskRegistryKeys.RACCOON_VARIANT, RaccoonVariants::bootstrap)
         gen.add(DuskRegistryKeys.FOG_MODIFIER, FogModifiers::bootstrap)
         gen.add(DuskRegistryKeys.SPELL, Spells::bootstrap)
-        println("End build registry")
     }
 }

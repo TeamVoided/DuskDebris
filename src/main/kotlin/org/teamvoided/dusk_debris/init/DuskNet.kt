@@ -33,7 +33,6 @@ object DuskNet {
         val world = ctx.player().level() ?: return
         val statue = world.getBlockEntity(payload.pos) ?: return
         if (statue !is StatueBlockEntity) return
-        println(type)
         statue.entityType = type
         ctx.player().connection.send(ClientboundBlockEntityDataPacket.create(statue, BlockEntity::saveCustomOnly))
 

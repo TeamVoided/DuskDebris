@@ -24,7 +24,6 @@ class StackedChaliceBlockEntity(pos: BlockPos, state: BlockState?) : BlockEntity
 
     override fun loadAdditional(nbt: CompoundTag, lookupProvider: HolderLookup.Provider?) {
         super.loadAdditional(nbt, lookupProvider)
-        println("Read: $nbt")
 
         if (nbt.contains(KEY)) {
             val list = nbt.getList(KEY, Tag.TAG_COMPOUND.toInt())
@@ -44,13 +43,11 @@ class StackedChaliceBlockEntity(pos: BlockPos, state: BlockState?) : BlockEntity
         }
         nbt.put(KEY, list)
 
-        println("Write: $nbt")
     }
 
 
     override fun getUpdatePacket(): ClientboundBlockEntityDataPacket = ClientboundBlockEntityDataPacket.create(this)
     override fun getUpdateTag(lookupProvider: HolderLookup.Provider): CompoundTag {
-        println("Sync")
         return this.saveCustomOnly(lookupProvider)
     }
 
