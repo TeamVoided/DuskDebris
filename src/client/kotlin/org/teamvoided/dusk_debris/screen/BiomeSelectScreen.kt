@@ -5,18 +5,17 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.core.Holder
-import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.Registry
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
-import net.minecraft.world.entity.Entity
+import net.minecraft.network.chat.MutableComponent
 import net.minecraft.world.level.biome.Biome
+import net.minecraft.world.level.biome.Biomes
 import org.teamvoided.dusk_debris.block.entity.BiomeTintBlockEntity
-import org.teamvoided.dusk_debris.block.entity.StatueBlockEntity
 import org.teamvoided.dusk_debris.net.c2s.BiomeTintUpdatePayload
-import org.teamvoided.dusk_debris.net.c2s.StatueUpdatePayload
 import org.teamvoided.dusk_debris.screen.widget.BiomeWidget
 import org.teamvoided.dusk_debris.screen.widget.EntityModelListWidget
-import org.teamvoided.dusk_debris.screen.widget.EntityModelWidget
+import kotlin.jvm.optionals.getOrNull
 
 class BiomeSelectScreen(val biomeTinter: BiomeTintBlockEntity) : Screen(TITLE), LayoutProvider {
     var biome: Holder<Biome>? = null
@@ -28,8 +27,7 @@ class BiomeSelectScreen(val biomeTinter: BiomeTintBlockEntity) : Screen(TITLE), 
     override fun init() {
         super.init()
         biome = biomeTinter.biome
-        if (biome == null) return
-        biomeWidget = BiomeWidget(48, 48, biome!!)
+        biomeWidget = BiomeWidget(48, 48, biome ?: getBiomes()!!.getHolderOrThrow(Biomes.PLAINS))
         biomeWidget?.let { entityWidget ->
             entityWidget.x = 16
             entityWidget.y = 16
@@ -38,7 +36,7 @@ class BiomeSelectScreen(val biomeTinter: BiomeTintBlockEntity) : Screen(TITLE), 
         modelList = this.layout.addToContents(EntityModelListWidget(minecraft, this.width, this))
         modelList?.let { list ->
             list.addEntries(
-                Minecraft.getInstance().level!!.registryAccess().registry(Registries.BIOME).get().holders().toList()
+                getBiomes()!!.holders().toList()
                     .map { holder ->
                         BiomeWidget(128, 48, holder).let { widget ->
                             widget.clickAction = { button ->
@@ -69,6 +67,12 @@ class BiomeSelectScreen(val biomeTinter: BiomeTintBlockEntity) : Screen(TITLE), 
     }
 
     companion object {
-        val TITLE = Component.literal("Straight Screen")
+
+        val TITLE: MutableComponent = Component.literal("Biome Screen")
+
+        fun getBiomes(): Registry<Biome>? {
+            return Minecraft.getInstance().level?.registryAccess()?.registry(Registries.BIOME)?.getOrNull()
+        }
+
     }
 }
