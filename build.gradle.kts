@@ -34,8 +34,6 @@ repositories {
     mavenCentral()
 }
 
-println("Task: " + gradle.startParameter.taskNames.joinToString(","))
-
 modSettings {
     entrypoint("main", "org.teamvoided.dusk_debris.DuskDebris::init")
     entrypoint("client", "org.teamvoided.dusk_debris.DuskDebrisClient::init")
@@ -83,6 +81,18 @@ loom {
             runDir("run")
             programArgs("--quickPlaySingleplayer", "test")
         }
+
+        forEach {
+            it.vmArgs(
+                // If enabled this you can hotswap basally anything
+                // Requires a JetBrains runtime!
+                "-XX:+AllowEnhancedClassRedefinition",
+                // If enabled this you can hotswap mixins
+                // Requires you to add MIXIN_PATH to your .env file
+                // Here is how to find the path: https://docs.fabricmc.net/develop/getting-started/intellij-idea/launching-the-game#1-locate-the-mixin-library-jar
+//                "-javaagent:${System.getProperty("MIXIN_PATH")}"
+            )
+        }
     }
 }
 
@@ -102,14 +112,6 @@ tasks {
     java {
         toolchain.languageVersion.set(JavaLanguageVersion.of(JavaVersion.toVersion(targetJavaVersion).toString()))
         withSourcesJar()
-    }
-    jar {
-        val valTaskNames = gradle.startParameter.taskNames
-        if (!valTaskNames.contains("runDataGen")) {
-            exclude("org/teamvoided/dusk-debris/data/gen/*")
-        } else {
-            println("Running datagen for task ${valTaskNames.joinToString(" ")}")
-        }
     }
 }
 
