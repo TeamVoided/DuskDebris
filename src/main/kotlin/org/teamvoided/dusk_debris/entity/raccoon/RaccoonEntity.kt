@@ -79,7 +79,7 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
         goalSelector.addGoal(9, RaccoonSearchForItemsGoal(this))
         goalSelector.addGoal(9, StoreItemsGoal(this, 1.2, 0))
         goalSelector.addGoal(10, SneezeGoal(this))
-        goalSelector.addGoal(11, LookAtPlayerGoal(this, Player::class.java, 8F))
+        goalSelector.addGoal(11, LookAtPlayerGoal(this, Player::class.java, 8f))
         goalSelector.addGoal(11, RandomLookAroundGoal(this))
         //goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))
 

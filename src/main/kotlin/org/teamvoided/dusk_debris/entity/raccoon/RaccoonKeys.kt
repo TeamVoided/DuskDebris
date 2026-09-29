@@ -15,3 +15,9 @@ const val KEY_BARREL_POS = "barrel_pos"
 const val KEY_DATA = "raccoon_data"
 const val KEY_ALIGNMENT = "alignment"
 
+/**
+ * Raccoon Special Goal Keys
+ */
+const val FUSE = "fuse"
+const val PREV_FUSE = "prev_fuse"
+
