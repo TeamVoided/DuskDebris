@@ -34,6 +34,7 @@ class DuskDebrisData : DataGeneratorEntrypoint {
         pack.addProvider { o, r -> ItemTagsProvider(o, r, blockTags) }
         pack.addProvider(::BiomeTagsProvider)
         pack.addProvider(::EntityTypeTagsProvider)
+        pack.addProvider(::PoITagsProvider)
         pack.addProvider(::DamageTypeTagsProvider)
         pack.addProvider(::EnchantmentTagsProvider)
         pack.addProvider(::PaintingVariantTagsProvider)

@@ -12,7 +12,7 @@ import org.teamvoided.dusk_debris.init.DuskFluids
 import java.util.concurrent.CompletableFuture
 
 class FluidTagsProvider(o: FabricDataOutput, r: CompletableFuture<HolderLookup.Provider>) :
-    FabricTagProvider<Fluid>(o, Registries.FLUID, r) {
+    FabricTagProvider.FluidTagProvider(o, r) {
     override fun addTags(wrapperLookup: HolderLookup.Provider) {
         duskTags()
         vanillaTags()
