@@ -9,7 +9,7 @@ import org.teamvoided.dusk_debris.DuskDebris.id
 object DuskPoITags {
 
     val RACCOON_BARREL = key("raccoon_barrel")
-    val WOOD_WASP_HOME = key("raccoon_barrel")
+    val WOOD_WASP_HOME = key("wood_wasp_home")
 
     fun key(id: String): TagKey<PoiType> = TagKey.create(Registries.POINT_OF_INTEREST_TYPE, id(id))
 }
