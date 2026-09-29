@@ -1,10 +1,10 @@
-package org.teamvoided.dusk_debris.entity.goal.raccoon
+package org.teamvoided.dusk_debris.entity.ai.goal.raccoon
 
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 import org.teamvoided.dusk_debris.util.Utils.vec3d
 
 class TooFarFromBarrelGoal(raccoon: RaccoonEntity, speed: Double, range: Int) :
-    MoveToBarrelGoal(raccoon, speed, range) {
+    org.teamvoided.dusk_debris.entity.ai.goal.raccoon.MoveToBarrelGoal(raccoon, speed, range) {
 
     override fun onTargetReached() {}
 

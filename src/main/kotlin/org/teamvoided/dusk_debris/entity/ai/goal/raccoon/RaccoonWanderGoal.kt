@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal.raccoon
+package org.teamvoided.dusk_debris.entity.ai.goal.raccoon
 
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal
 import net.minecraft.world.phys.Vec3

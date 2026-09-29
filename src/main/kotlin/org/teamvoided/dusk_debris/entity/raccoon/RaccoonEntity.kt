@@ -69,16 +69,34 @@ class RaccoonEntity(type: EntityType<out RaccoonEntity>, world: Level) : Animal(
             4, AvoidEntityGoal(this, LivingEntity::class.java, 8f, 1.6, 1.4)
             { it.type.`is`(DuskEntityTypeTags.RACCOON_RETREATS) }
         )
-        goalSelector.addGoal(6, SeekShelterGoal(this, 1.25))
-        goalSelector.addGoal(7, ClaimBarrelGoal(this, 1.2, 12))
-        goalSelector.addGoal(7, WashFoodGoal(this, 1.2, 12))
-        goalSelector.addGoal(7, RaccoonMeleeAttackGoal(this, 1.2, true))
-        goalSelector.addGoal(8, PickBerriesGoal(this, 1.2, 12, 1))
-        goalSelector.addGoal(8, GetFoodFromBarrelGoal(this, 1.2, 0))
-        goalSelector.addGoal(9, RaccoonWanderGoal(this, 1.0))
-        goalSelector.addGoal(9, RaccoonSearchForItemsGoal(this))
-        goalSelector.addGoal(9, StoreItemsGoal(this, 1.2, 0))
-        goalSelector.addGoal(10, SneezeGoal(this))
+        goalSelector.addGoal(6,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.SeekShelterGoal(this, 1.25)
+        )
+        goalSelector.addGoal(7,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.ClaimBarrelGoal(this, 1.2, 12)
+        )
+        goalSelector.addGoal(7,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.WashFoodGoal(this, 1.2, 12)
+        )
+        goalSelector.addGoal(7,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.RaccoonMeleeAttackGoal(this, 1.2, true)
+        )
+        goalSelector.addGoal(8,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.PickBerriesGoal(this, 1.2, 12, 1)
+        )
+        goalSelector.addGoal(8,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.GetFoodFromBarrelGoal(this, 1.2, 0)
+        )
+        goalSelector.addGoal(9,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.RaccoonWanderGoal(this, 1.0)
+        )
+        goalSelector.addGoal(9,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.RaccoonSearchForItemsGoal(this)
+        )
+        goalSelector.addGoal(9,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.StoreItemsGoal(this, 1.2, 0)
+        )
+        goalSelector.addGoal(10, _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.raccoon.SneezeGoal(this))
         goalSelector.addGoal(11, LookAtPlayerGoal(this, Player::class.java, 8F))
         goalSelector.addGoal(11, RandomLookAroundGoal(this))
         //goalSelector.addGoal(15, TooFarFromBarrelGoal(this, 1.2, 0))

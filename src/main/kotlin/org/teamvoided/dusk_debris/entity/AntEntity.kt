@@ -36,10 +36,10 @@ import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.gameevent.GameEvent
 import net.minecraft.world.phys.AABB
-import org.teamvoided.dusk_debris.entity.goal.ant.AntSearchForItemsGoal
-import org.teamvoided.dusk_debris.entity.goal.ant.BurrowGoal
-import org.teamvoided.dusk_debris.entity.goal.ant.EmergeGoal
-import org.teamvoided.dusk_debris.entity.goal.ant.TunnelAroundGoal
+import org.teamvoided.dusk_debris.entity.ai.goal.ant.AntSearchForItemsGoal
+import org.teamvoided.dusk_debris.entity.ai.goal.ant.BurrowGoal
+import org.teamvoided.dusk_debris.entity.ai.goal.ant.EmergeGoal
+import org.teamvoided.dusk_debris.entity.ai.goal.ant.TunnelAroundGoal
 import org.teamvoided.dusks_and_dungeons.DusksAndDungeons.id
 import java.util.*
 
@@ -62,12 +62,18 @@ class AntEntity(entityType: EntityType<out AntEntity>, level: Level) : Monster(e
     override fun registerGoals() {
         goalSelector.addGoal(0, FloatGoal(this))
         goalSelector.addGoal(0, ClimbOnTopOfPowderSnowGoal(this, level()))
-        goalSelector.addGoal(1, EmergeGoal(this))
-        goalSelector.addGoal(1, BurrowGoal(this, level()))
-        goalSelector.addGoal(1, TunnelAroundGoal(this, level()))
+        goalSelector.addGoal(1, _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.ant.EmergeGoal(this))
+        goalSelector.addGoal(1,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.ant.BurrowGoal(this, level())
+        )
+        goalSelector.addGoal(1,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.ant.TunnelAroundGoal(this, level())
+        )
         goalSelector.addGoal(2, MeleeAttackGoal(this, 1.0, false))
         goalSelector.addGoal(3, WaterAvoidingRandomStrollGoal(this, 1.0))
-        goalSelector.addGoal(6, AntSearchForItemsGoal(this))
+        goalSelector.addGoal(6,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.ant.AntSearchForItemsGoal(this)
+        )
         goalSelector.addGoal(7, LookAtPlayerGoal(this, Player::class.java, 8.0f))
         goalSelector.addGoal(8, RandomLookAroundGoal(this))
         targetSelector.addGoal(1, HurtByTargetGoal(this).setAlertOthers())

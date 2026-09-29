@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal.raccoon
+package org.teamvoided.dusk_debris.entity.ai.goal.raccoon
 
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.ai.goal.FleeSunGoal

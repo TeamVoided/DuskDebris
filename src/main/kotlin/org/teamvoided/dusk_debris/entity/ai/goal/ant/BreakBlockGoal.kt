@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal.ant
+package org.teamvoided.dusk_debris.entity.ai.goal.ant
 
 import net.minecraft.world.entity.Mob
 
@@ -10,7 +10,7 @@ import net.minecraft.world.level.GameRules
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 
-class BreakBlockGoal(val mob: Mob) : Goal() {
+class BreakBlockGoal(val mob: Mob) : net.minecraft.world.entity.ai.goal.Goal() {
     var blockTargetPos: BlockPos = BlockPos.ZERO
     var blockBreakTime: Int
     var breakTime: Int = 0

@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal.raccoon
+package org.teamvoided.dusk_debris.entity.ai.goal.raccoon
 
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.ItemStack
@@ -6,7 +6,7 @@ import net.minecraft.world.level.block.entity.BarrelBlockEntity
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
 
 class StoreItemsGoal(raccoon: RaccoonEntity, speed: Double, range: Int) :
-    MoveToBarrelGoal(raccoon, speed, range) {
+    org.teamvoided.dusk_debris.entity.ai.goal.raccoon.MoveToBarrelGoal(raccoon, speed, range) {
 
     override fun onTargetReached() {
         val heldItem = raccoon.getHeldItem()

@@ -22,7 +22,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.ServerLevelAccessor
-import org.teamvoided.dusk_debris.entity.goal.WanderAroundPoint
+import org.teamvoided.dusk_debris.entity.ai.goal.WanderAroundPoint
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -42,7 +42,9 @@ class PifflingPumpkinEntity(entityType: EntityType<out PifflingPumpkinEntity>, w
     override fun registerGoals() {
         goalSelector.addGoal(0, MeleeAttackGoal(this, 1.0, true))
         goalSelector.addGoal(1, PanicGoal(this, 2.0))
-        goalSelector.addGoal(2, WanderAroundPoint(this, this.summonedPos, 1.0))
+        goalSelector.addGoal(2,
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.WanderAroundPoint(this, this.summonedPos, 1.0)
+        )
         goalSelector.addGoal(4, MoveTowardsRestrictionGoal(this, 1.0))
         goalSelector.addGoal(8, WaterAvoidingRandomStrollGoal(this, 1.0, 1f))
         goalSelector.addGoal(9, LookAtPlayerGoal(this, Player::class.java, 6f))

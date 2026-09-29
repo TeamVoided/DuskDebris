@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal.ant
+package org.teamvoided.dusk_debris.entity.ai.goal.ant
 
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.ai.goal.Goal
@@ -8,7 +8,7 @@ import org.teamvoided.dusk_debris.entity.AntEntity
 import java.util.*
 import java.util.function.Predicate
 
-class AntSearchForItemsGoal(val mob: AntEntity) : Goal() {
+class AntSearchForItemsGoal(val mob: AntEntity) : net.minecraft.world.entity.ai.goal.Goal() {
     init {
         this.flags = EnumSet.of(Flag.MOVE)
     }
@@ -45,8 +45,8 @@ class AntSearchForItemsGoal(val mob: AntEntity) : Goal() {
     fun getItems(): MutableList<ItemEntity?> {
         return mob.level().getEntitiesOfClass(
             ItemEntity::class.java,
-            mob.boundingBox.inflate(RANGE),
-            ALLOWED_ITEMS
+            mob.boundingBox.inflate(_root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.ant.AntSearchForItemsGoal.Companion.RANGE),
+            _root_ide_package_.org.teamvoided.dusk_debris.entity.ai.goal.ant.AntSearchForItemsGoal.Companion.ALLOWED_ITEMS
         )
     }
 

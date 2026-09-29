@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal
+package org.teamvoided.dusk_debris.entity.ai.goal
 
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.PathfinderMob
@@ -7,7 +7,7 @@ import net.minecraft.world.phys.Vec3
 import java.util.*
 
 class WanderAroundPoint(val entity: PathfinderMob, val target: BlockPos?, val speed: Double) :
-    Goal() {
+    net.minecraft.world.entity.ai.goal.Goal() {
     init {
         this.setFlags(EnumSet.of(Flag.MOVE))
     }

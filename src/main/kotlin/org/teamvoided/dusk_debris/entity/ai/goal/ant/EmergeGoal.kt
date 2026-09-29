@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.entity.goal.ant
+package org.teamvoided.dusk_debris.entity.ai.goal.ant
 
 import net.minecraft.world.entity.ai.goal.Goal
 import org.teamvoided.dusk_debris.entity.AntEntity
