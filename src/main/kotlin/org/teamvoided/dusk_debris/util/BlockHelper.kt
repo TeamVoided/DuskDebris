@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument
 import net.minecraft.world.level.material.MapColor
 import net.minecraft.world.level.material.PushReaction
+import net.minecraft.world.phys.shapes.VoxelShape
 import org.teamvoided.dusk_debris.DuskDebris
 import org.teamvoided.dusk_debris.block.not_blocks.DuskProperties
 import org.teamvoided.dusk_debris.block.sot.CoinPileBlock
@@ -18,6 +19,14 @@ import org.teamvoided.dusk_debris.init.DuskBlocks
 import org.teamvoided.dusk_debris.particle.color.NethershroomSporeParticleEffect
 import java.util.function.ToIntFunction
 
+fun symmetricalBoxY(xzMin: Double, yMin: Double, yMax: Double): VoxelShape =
+    Block.box(xzMin, yMin, xzMin, 16 - xzMin, yMax, 16 - xzMin)
+
+fun symmetricalBoxZ(xyMin: Double, zMin: Double, zMax: Double): VoxelShape =
+    Block.box(xyMin, xyMin, zMin, 16 - xyMin, 16 - xyMin, zMax)
+
+fun symmetricalBoxX(yzMin: Double, xMin: Double, xMax: Double): VoxelShape =
+    Block.box(xMin, yzMin, yzMin, xMax, 16 - yzMin, 16 - yzMin)
 
 fun Block.cutout(): Block {
     DuskBlocks.CUTOUT_BLOCKS.add(this)

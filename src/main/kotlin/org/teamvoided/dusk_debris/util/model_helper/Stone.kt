@@ -2,12 +2,13 @@ package org.teamvoided.dusk_debris.util.model_helper
 
 import net.minecraft.data.models.BlockModelGenerators
 import net.minecraft.data.models.blockstates.MultiVariantGenerator
-import net.minecraft.data.models.model.ModelTemplates
-import net.minecraft.data.models.model.TextureMapping
-import net.minecraft.data.models.model.TextureSlot
-import net.minecraft.data.models.model.TexturedModel
+import net.minecraft.data.models.blockstates.PropertyDispatch
+import net.minecraft.data.models.blockstates.Variant
+import net.minecraft.data.models.blockstates.VariantProperties
+import net.minecraft.data.models.model.*
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Block
+import org.teamvoided.dusk_debris.block.DustLayerBlock
 import org.teamvoided.dusk_debris.block.not_blocks.DuskProperties
 import org.teamvoided.dusk_debris.util.block
 import org.teamvoided.dusk_debris.util.model
@@ -16,13 +17,39 @@ import org.teamvoided.dusk_debris.util.suffix
 
 fun BlockModelGenerators.registerActive(block: Block, activeSuffix: String = "_active") {
     val identifier = TexturedModel.CUBE.create(block, this.modelOutput)
-    val identifier2 = TexturedModel.createDefault({ TextureMapping.cube(it.model().suffix(activeSuffix)) }, ModelTemplates.CUBE_ALL)
-        .createWithSuffix(block, activeSuffix, this.modelOutput)
+    val identifier2 =
+        TexturedModel.createDefault({ TextureMapping.cube(it.model().suffix(activeSuffix)) }, ModelTemplates.CUBE_ALL)
+            .createWithSuffix(block, activeSuffix, this.modelOutput)
     this.blockStateOutput.accept(
         MultiVariantGenerator.multiVariant(block).with(
             BlockModelGenerators.createBooleanModelDispatch(DuskProperties.ACTIVE, identifier2, identifier)
         )
     )
+}
+
+fun BlockModelGenerators.registerDust(block: Block, layer: Block) {
+    val textureMapping = TextureMapping.cube(block)
+    val fullModel = ModelTemplates.CUBE_ALL.create(block, textureMapping, this.modelOutput)
+    this.blockStateOutput
+        .accept(
+            MultiVariantGenerator.multiVariant(layer).with(
+                PropertyDispatch.property(DustLayerBlock.LAYERS).generate { layerCount ->
+                    Variant.variant().with(
+                        VariantProperties.MODEL,
+                        if (layerCount < DustLayerBlock.MAX_HEIGHT) {
+                            val suffix = "_height" + layerCount * (16 / DustLayerBlock.MAX_HEIGHT)
+                            TexturedModel.createDefault(
+                                { TextureMapping.defaultTexture(block) },
+                                ModelTemplates.create("snow$suffix", TextureSlot.TEXTURE)
+                            ).createWithSuffix(layer, suffix, this.modelOutput)
+                           // layer.model(suffix)
+                        } else fullModel
+                    )
+                }
+            )
+        )
+    this.delegateItemModel(layer, ModelLocationUtils.getModelLocation(layer, "_height2"))
+    this.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(block, fullModel))
 }
 
 

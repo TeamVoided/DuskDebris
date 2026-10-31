@@ -57,7 +57,8 @@ object DuskBlocks {
 
     //val STONE_CHEST = register("stone_chest", DuskDoubleChestBlock(copy(CHEST)) { DuskBlockEntities.STONE_CHEST })
 
-    val ACID = registerNoItem("acid", LiquidBlock(DuskFluids.ACID, ofFullCopy(WATER).mapColor(MapColor.COLOR_LIGHT_GREEN)))
+    val ACID =
+        registerNoItem("acid", LiquidBlock(DuskFluids.ACID, ofFullCopy(WATER).mapColor(MapColor.COLOR_LIGHT_GREEN)))
     val FOG_BUBBLE = registerNoItem(
         "fog_bubble", BubbleBlock(
             Properties.of().mapColor(MapColor.TERRACOTTA_PURPLE).strength(0.25f)
@@ -71,6 +72,19 @@ object DuskBlocks {
     val MYTHROCK = register("mythrock", Block(ofFullCopy(STONE)))
     val MYTHROCK_ARTERY = register("mythrock_artery", MysticalStreamBlock(ofFullCopy(MYTHROCK)))
     val MYTHROCK_HEART = register("mythrock_heart", MysticalPulseBlock(ofFullCopy(MYTHROCK).randomTicks()))
+
+    val DUST_BLOCK = register("dust_block", Block(ofFullCopy(SAND).strength(0.4f)))
+    val DUST_LAYER = register(
+        "dust", DustLayerBlock(
+            ofFullCopy(DUST_BLOCK)
+                .replaceable()
+                .forceSolidOff()
+                .strength(0.2f)
+                .requiresCorrectToolForDrops()
+                .isViewBlocking { blockState, blockGetter, blockPos ->
+                    blockState.getValue(DustLayerBlock.LAYERS) >= DustLayerBlock.MAX_HEIGHT
+                }
+                .pushReaction(PushReaction.DESTROY)))
 
     val EXHAUST_BLOCK = register("exhaust_block", ExhaustBlock(ofFullCopy(DEEPSLATE).randomTicks()))
 
@@ -298,10 +312,12 @@ object DuskBlocks {
         CoinStackBlock(coin_stack_settings.mapColor(TREACHEROUS_GOLD_BLOCK.defaultMapColor()))
     ).cutout()
     val TREACHEROUS_GOLD_COIN_PILE = registerNoItem(
-        "treacherous_gold_coin_pile", CoinPileBlock(coin_pile_settings.mapColor(TREACHEROUS_GOLD_BLOCK.defaultMapColor()))
+        "treacherous_gold_coin_pile",
+        CoinPileBlock(coin_pile_settings.mapColor(TREACHEROUS_GOLD_BLOCK.defaultMapColor()))
     )
     val TARNISHED_GOLD_COIN_STACK = registerNoItem(
-        "tarnished_gold_coin_stack", CoinStackBlock(coin_stack_settings.mapColor(TARNISHED_GOLD_BLOCK.defaultMapColor()))
+        "tarnished_gold_coin_stack",
+        CoinStackBlock(coin_stack_settings.mapColor(TARNISHED_GOLD_BLOCK.defaultMapColor()))
     ).cutout()
     val TARNISHED_GOLD_COIN_PILE = registerNoItem(
         "tarnished_gold_coin_pile", CoinPileBlock(coin_pile_settings.mapColor(TARNISHED_GOLD_BLOCK.defaultMapColor()))
@@ -915,7 +931,8 @@ object DuskBlocks {
                 .sound(SoundType.GRASS).mapColor(MapColor.COLOR_RED)
         ).cutout()
     )
-    val GALLERY_MAPLE_LOG = register("gallery_maple_log", log(MapColor.COLOR_GRAY, MapColor.COLOR_BROWN, SoundType.WOOD))
+    val GALLERY_MAPLE_LOG =
+        register("gallery_maple_log", log(MapColor.COLOR_GRAY, MapColor.COLOR_BROWN, SoundType.WOOD))
     val GALLERY_MAPLE_WOOD = register(
         "gallery_maple_wood", RotatedPillarBlock(
             Properties.of().mapColor(MapColor.COLOR_BROWN).instrument(NoteBlockInstrument.BASS).strength(2.0f)
@@ -988,11 +1005,15 @@ object DuskBlocks {
     val BONEWOOD_FENCE =
         register("bonewood_fence", fenceOf(BONEWOOD_PLANKS))
     val BONEWOOD_FENCE_GATE = register(
-        "bonewood_fence_gate", FenceGateBlock(DuskBlockSetType.BONEWOOD_WOOD_TYPE, ofFullCopy(BONEWOOD_PLANKS).forceSolidOn())
+        "bonewood_fence_gate",
+        FenceGateBlock(DuskBlockSetType.BONEWOOD_WOOD_TYPE, ofFullCopy(BONEWOOD_PLANKS).forceSolidOn())
     )
     val BONEWOOD_DOOR = registerNoItem(
         "bonewood_door",
-        DoorBlock(DuskBlockSetType.BONEWOOD_BLOCK_SET_TYPE, ofFullCopy(BONEWOOD_PLANKS).strength(3.0f).noOcclusion()).cutout()
+        DoorBlock(
+            DuskBlockSetType.BONEWOOD_BLOCK_SET_TYPE,
+            ofFullCopy(BONEWOOD_PLANKS).strength(3.0f).noOcclusion()
+        ).cutout()
     )
     val BONEWOOD_TRAPDOOR = register(
         "bonewood_trapdoor",
@@ -1014,7 +1035,10 @@ object DuskBlocks {
 
     val WITHERING_BONEWOOD_FENCE_GATE = register(
         "withering_bonewood_fence_gate",
-        FenceGateBlock(DuskBlockSetType.WITHERING_BONEWOOD_WOOD_TYPE, ofFullCopy(WITHERING_BONEWOOD_PLANKS).forceSolidOn())
+        FenceGateBlock(
+            DuskBlockSetType.WITHERING_BONEWOOD_WOOD_TYPE,
+            ofFullCopy(WITHERING_BONEWOOD_PLANKS).forceSolidOn()
+        )
     )
     val WITHERING_BONEWOOD_DOOR = registerNoItem(
         "withering_bonewood_door",
