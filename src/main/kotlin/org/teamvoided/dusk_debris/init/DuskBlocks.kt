@@ -82,7 +82,7 @@ object DuskBlocks {
                 .strength(0.2f)
                 .requiresCorrectToolForDrops()
                 .isViewBlocking { blockState, blockGetter, blockPos ->
-                    blockState.getValue(DustLayerBlock.LAYERS) >= DustLayerBlock.MAX_HEIGHT
+                    blockState.getValue(DustLayerBlock.LAYERS) >= DustLayerBlock.MAX_LAYERS
                 }
                 .pushReaction(PushReaction.DESTROY)))
 

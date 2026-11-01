@@ -36,8 +36,8 @@ fun BlockModelGenerators.registerDust(block: Block, layer: Block) {
                 PropertyDispatch.property(DustLayerBlock.LAYERS).generate { layerCount ->
                     Variant.variant().with(
                         VariantProperties.MODEL,
-                        if (layerCount < DustLayerBlock.MAX_HEIGHT) {
-                            val suffix = "_height" + layerCount * (16 / DustLayerBlock.MAX_HEIGHT)
+                        if (layerCount < DustLayerBlock.MAX_LAYERS) {
+                            val suffix = "_height" + layerCount * (16 / DustLayerBlock.MAX_LAYERS)
                             TexturedModel.createDefault(
                                 { TextureMapping.defaultTexture(block) },
                                 ModelTemplates.create("snow$suffix", TextureSlot.TEXTURE)
