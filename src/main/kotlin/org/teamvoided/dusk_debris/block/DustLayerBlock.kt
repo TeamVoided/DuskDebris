@@ -24,6 +24,7 @@ import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.teamvoided.dusk_debris.block.entity.FallingDustEntity
 import org.teamvoided.dusk_debris.util.symmetricalBoxY
+import kotlin.math.max
 import kotlin.math.min
 
 class DustLayerBlock(properties: Properties) : Block(properties) {
@@ -99,27 +100,19 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
     }
 
     override fun updateShape(
-        blockState: BlockState,
-        direction: Direction,
-        blockState2: BlockState,
+        state1: BlockState,
+        dir: Direction,
+        state2: BlockState,
         levelAccessor: LevelAccessor,
-        blockPos: BlockPos,
-        blockPos2: BlockPos
+        pos1: BlockPos,
+        pos2: BlockPos
     ): BlockState {
-        if (!blockState.canSurvive(levelAccessor, blockPos)) {
-            //TODO(see if should re-add)
-            //if (!levelAccessor.getBlockState(blockPos.below()).`is`(this) &&
-            //    canSurvive(defaultBlockState(), levelAccessor, blockPos.below())
-            //) {
-            //    levelAccessor.setBlock(blockPos.below(), blockState, 3)
-            //} else
-            if (levelAccessor is ServerLevel) {
-                summonFalling(levelAccessor, blockPos, blockState)
-            }
-            return Blocks.AIR.defaultBlockState()
+        if (!state1.canSurvive(levelAccessor, pos1) && levelAccessor.getBlockState(pos1.below()).`is`(this)) {
+            levelAccessor.scheduleTick(pos1, this, DELAY_MOVE)
+            return state1
         }
-        levelAccessor.scheduleTick(blockPos, this, levelAccessor.random.nextInt(1, DELAY_MOVE))
-        return super.updateShape(blockState, direction, blockState2, levelAccessor, blockPos, blockPos2)
+        levelAccessor.scheduleTick(pos1, this, DELAY_MOVE)
+        return super.updateShape(state1, dir, state2, levelAccessor, pos1, pos2)
 
     }
 
@@ -130,7 +123,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         livingEntity: LivingEntity?,
         itemStack: ItemStack
     ) {
-        level.scheduleTick(blockPos, this, level.random.nextInt(1, DELAY_MOVE))
+        level.scheduleTick(blockPos, this, DELAY_MOVE)
         super.setPlacedBy(level, blockPos, blockState, livingEntity, itemStack)
     }
 
@@ -157,71 +150,77 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
     }
 
     override fun tick(
-        state: BlockState,
+        state1: BlockState,
         serverLevel: ServerLevel,
-        pos: BlockPos,
-        randomSource: RandomSource?
+        pos1: BlockPos,
+        randomSource: RandomSource
     ) {
-        if (!state.canSurvive(serverLevel, pos)) {
-            serverLevel.setBlock(pos, Blocks.AIR.defaultBlockState(), 3)
-            summonFalling(serverLevel, pos, state)
-        }
-        val layers = state.getValue(LAYERS)
-        if (layers == MAX_LAYERS) {
-            return serverLevel.scheduleTick(pos.above(), this, 1)
-        }
+
+        val it = Direction.NORTH //TODO("remove this line")
+
         val dirs = Direction.Plane.HORIZONTAL.shuffled()
+        val pos1Down = pos1.below()
+        val state1Down = serverLevel.getBlockState(pos1Down)
+
+        if (!state1.canSurvive(serverLevel, pos1) && state1.canSurvive(serverLevel, pos1Down)) {
+            if (state1.canSurvive(serverLevel, pos1Down)) {
+                return moveLayer(serverLevel, pos1, state1, pos1Down, state1Down, 1)
+            } else {
+                serverLevel.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
+                summonFalling(serverLevel, pos1, state1)
+            }
+        }
+
+        val layers = state1.getValue(LAYERS)
+        val belowIsThis = state1Down.`is`(this)
         dirs.forEach {
-            val pos2 = pos.relative(it)
-            val state2 = serverLevel.getBlockState(pos2)
-            if (state2.isAir) {
-                if (layers > 1 && canSurvive(state, serverLevel, pos2)) {
-                    return moveLayer(serverLevel, pos, state, pos2, 1)
-                }
-                val downPos2 = pos2.below()
-                val downState2 = serverLevel.getBlockState(downPos2)
-                if (downState2.`is`(this)) {
-                    if (downState2.getValue(LAYERS) < MAX_LAYERS) {
-                        return moveLayer(serverLevel, pos, state, downPos2, downState2, 1)
-                    }
-                }
-                if (downState2.isAir) {
-                    return if (canSurvive(state, serverLevel, downPos2)) {
-                        moveLayer(serverLevel, pos, state, downPos2, 1)
+            if (belowIsThis || serverLevel.getBlockState(pos1.relative(it)).isAir) {
+                val pos2Down = pos1Down.relative(it)
+                val state2Down = serverLevel.getBlockState(pos2Down)
+                if (state2Down.isAir && state1Down.`is`(this)) {
+                    if (canSurvive(serverLevel, pos2Down)) {
+                        return moveLayer(serverLevel, pos1, state1, pos2Down, 1)
                     } else {
-                        if (serverLevel.getBlockState(pos.below()).`is`(this)) {
-                            serverLevel.scheduleTick(pos.below(), this, 1)
-                        } else {
-                            serverLevel.setBlock(pos, Blocks.AIR.defaultBlockState(), 3)
-                            summonFalling(serverLevel, pos2, state)
-                        }
+                        serverLevel.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
+                        return summonFalling(serverLevel, pos1, state1)
                     }
+                } else if (state2Down.`is`(this) && state2Down.getValue(LAYERS) != MAX_LAYERS) {
+                    return moveLayer(serverLevel, pos1, state1, pos2Down, state2Down, 1)
                 }
             }
         }
-        dirs.forEach {
-            val pos2 = pos.relative(it)
-            val state2 = serverLevel.getBlockState(pos2)
-            if (layers > 1 && state2.`is`(this) && state2.getValue(LAYERS) < layers - 1) {
-                return moveLayer(serverLevel, pos, state, pos2, state2, 1)
+        if (layers > 1) {
+            dirs.forEach {
+                val pos2 = pos1.relative(it)
+                val state2 = serverLevel.getBlockState(pos2)
+                if ((state2.isAir && canSurvive(serverLevel, pos2)) ||
+                    (state2.`is`(this) && state2.getValue(LAYERS) < layers - 1)
+                ) {
+                    return moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+                }
             }
         }
+        //if (serverLevel.getBlockState(pos1.above()).`is`(this)) {
+        //    return serverLevel.scheduleTick(pos1.above(), this, 1)
+        //}
 
-        //  1 if below neighbor is supported air, subtract one from this and place one at air
-        //  2 if below neighbor is dust layer, subtract one from this and add one to neighbor
-        //  3 if below neighbor is air, subtract one from this and spawn falling dust entity
-        //  4 if neighbor is supported air, step 1
-        //  5 if neighbor is dust layer and is lower than this one, step 2
+        //dirs.forEach {
+        //    val pos2 = pos1.relative(it)
+        //    val state2 = serverLevel.getBlockState(pos2)
+        //    if (!(state2.isAir || state2.`is`(this))) {
+        //        return serverLevel.scheduleTick(pos1.above(), this, 1)
+        //    }
+        //}
 
-        //  if neighbor is air
-        //      if below neighbor is dust layer                 2
-        //          if layer is full
-        //          if layer is not full
-        //      if below neighbor is air
-        //          if below neighbor is supported air          1
-        //          if below neighbor is not supported          3
-        //      if below neighbor is not air and can place      4
-        //  if neighbor is dust layer                           5
+        //  if dust below
+        //      if layer can survive at below neighbor
+        //          do move layer
+        //  if any horizontal is air and can survive
+        //      do move layer
+        //  if any horizontal is not full dust layer
+        //      do try to move layer when neighbor is 2 lower
+        //  if all horizontal is full dust or solid
+        //      do if dust above, schedule tick it
     }
 
     fun summonFalling(level: Level, blockPos: BlockPos, blockState: BlockState) {
@@ -236,6 +235,9 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         pos2: BlockPos, state2: BlockState,
         change: Int
     ) {
+        if (!state2.`is`(this)) {
+            return moveLayer(level, pos1, state1, pos2, change)
+        }
         level.setBlock(pos2, state2.setValue(LAYERS, state2.getValue(LAYERS) + change), 3)
         level.scheduleTick(pos2, this, level.random.nextInt(1, DELAY_MOVE))
         if (state1.`is`(this) && state1.getValue(LAYERS) > change) {
@@ -324,21 +326,60 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         }
 
         fun removeFromTopLayer(level: Level, pos1: BlockPos, state1: BlockState, count: Int) {
-            val posAbove = pos1.above()
-            val stateAbove = level.getBlockState(posAbove)
-            if (stateAbove.block is DustLayerBlock) {
-                removeFromTopLayer(level, posAbove, stateAbove, count)
-            } else if (state1.block is DustLayerBlock) {
-                val layers1 = state1.getValue(LAYERS)
-                if (layers1 < count) {
-                    level.setBlock(pos1, state1.setValue(LAYERS, layers1 - count), 3)
-                    return
-                }
+            if (state1.block !is DustLayerBlock || count < 1) return
+            val pos1Above = pos1.above()
+            val state1Above = level.getBlockState(pos1Above)
+            if (state1Above.block is DustLayerBlock) {
+                return removeFromTopLayer(
+                    level,
+                    pos1Above,
+                    state1Above,
+                    count
+                )
+            }
+            val layers1 = state1.getValue(LAYERS)
+            if (layers1 > count) {
+                level.setBlock(pos1, state1.setValue(LAYERS, layers1 - count), 3)
+            } else if (layers1 <= count) {
                 level.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
-                if (layers1 != count) {
-                    removeFromTopLayer(level, pos1.below(), level.getBlockState(pos1.below()), count - layers1)
+                if (layers1 < count) {
+                    removeFromTopLayer(
+                        level,
+                        pos1.below(),
+                        level.getBlockState(pos1.below()),
+                        count - layers1
+                    )
                 }
             }
+
+            //if (layers1 < count || count > MAX_LAYERS) {
+            //    val mod = if (count > MAX_LAYERS) {
+            //        ((count % MAX_LAYERS) - layers1)
+            //    } else {
+            //        count - layers1
+            //    }
+            //    if (mod == 0) {
+            //        level.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
+            //    } else {
+            //        if ((mod <= MAX_LAYERS && mod > 0)) {
+            //            level.setBlock(pos1, state1.setValue(LAYERS, mod), 3)
+            //        } else {
+            //            for (i in -10..10) {
+            //                println("$i, " + (i % MAX_LAYERS))
+            //            }
+            //            return println("count: $count, layers1: $layers1, mod: $mod")
+            //        }
+            //    }
+            //    return removeFromTopLayer(
+            //        level,
+            //        pos1.below(),
+            //        level.getBlockState(pos1.below()),
+            //        count - layers1
+            //    )
+            //    //if (layers1 != count) {
+            //    //    return removeFromTopLayer(level, pos1.below(), level.getBlockState(pos1.below()), count - layers1)
+            //    //}
+            //}
         }
     }
 }

@@ -3,13 +3,9 @@ package org.teamvoided.dusk_debris.block.entity
 import com.mojang.logging.LogUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.particles.BlockParticleOption
-import net.minecraft.core.particles.ColorParticleOption
-import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.tags.FluidTags
-import net.minecraft.util.ParticleUtils
 import net.minecraft.world.entity.EntityDimensions
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.MoverType
@@ -44,7 +40,7 @@ class FallingDustEntity : FallingBlockEntity {
         DuskEntities.FALLING_DUST,
         level
     ) {
-        dustState = blockState
+        dustBlock = blockState
         blocksBuilding = true
         setPos(x, y, z)
         deltaMovement = Vec3.ZERO
@@ -55,7 +51,7 @@ class FallingDustEntity : FallingBlockEntity {
     }
 
     var layerCount: Int = 1
-    var dustState: BlockState = DuskBlocks.DUST_LAYER.defaultBlockState()
+    var dustBlock: BlockState = DuskBlocks.DUST_LAYER.defaultBlockState()
         set(value) {
             field = value
             if (value.hasProperty(DustLayerBlock.LAYERS)) {
@@ -64,7 +60,7 @@ class FallingDustEntity : FallingBlockEntity {
             }
         }
 
-    override fun getBlockState(): BlockState = dustState
+    override fun getBlockState(): BlockState = dustBlock
 
 
     override fun getDimensions(pose: Pose): EntityDimensions {
@@ -72,17 +68,17 @@ class FallingDustEntity : FallingBlockEntity {
     }
 
     override fun tick() {
-        if (dustState.isAir) {
+        if (dustBlock.isAir) {
             discard()
         } else {
-            val block = dustState.block
+            val block = dustBlock.block
             time++
             applyGravity()
             move(MoverType.SELF, deltaMovement)
             handlePortal()
             if (!level().isClientSide && (isAlive || forceTickAfterTeleportToDuplicate)) {
                 var blockPos = blockPosition()
-                val isConcrete = dustState.block is ConcretePowderBlock
+                val isConcrete = dustBlock.block is ConcretePowderBlock
                 var waterCheck = isConcrete && level().getFluidState(blockPos).`is`(FluidTags.WATER)
                 val speed = deltaMovement.lengthSqr()
                 if (isConcrete && speed > 1.0) {
@@ -106,23 +102,23 @@ class FallingDustEntity : FallingBlockEntity {
                 if (onGround() || waterCheck) {
                     val worldState = level().getBlockState(blockPos)
                     deltaMovement = deltaMovement.multiply(0.7, -0.5, 0.7)
-                    if (worldState.`is`(dustState.block)) {
+                    if (worldState.`is`(dustBlock.block)) {
                         val worldLayerCount = worldState.getValue(DustLayerBlock.LAYERS) +
                                 DustLayerBlock.getLayerCountDir(level(), blockPos, Direction.UP)
                         val layerSum = worldLayerCount + layerCount
                         if (layerSum <= DustLayerBlock.MAX_LAYERS) {
-                            place(dustState.setValue(DustLayerBlock.LAYERS, layerSum), worldState, blockPos, true)
-                            level().scheduleTick(blockPos, dustState.block, 1)
+                            place(dustBlock.setValue(DustLayerBlock.LAYERS, layerSum), worldState, blockPos, true)
+                            level().scheduleTick(blockPos, dustBlock.block, 1)
                         } else {
                             val layerBlockHeight = ceil(layerSum.toDouble() / DustLayerBlock.MAX_LAYERS).toInt()
                             for (i in 1..layerBlockHeight) {
                                 val loopPos = blockPos.above(i - 1)
                                 val loopState = level().getBlockState(loopPos)
-                                if (dustState.canSurvive(level(), loopPos) && loopState.canBeReplaced()) {
+                                if (dustBlock.canSurvive(level(), loopPos) && loopState.canBeReplaced()) {
                                     if (i == layerBlockHeight) {
                                         if (layerSum % DustLayerBlock.MAX_LAYERS != 0) {
                                             place(
-                                                dustState.setValue(
+                                                dustBlock.setValue(
                                                     DustLayerBlock.LAYERS,
                                                     layerSum % DustLayerBlock.MAX_LAYERS
                                                 ),
@@ -130,19 +126,19 @@ class FallingDustEntity : FallingBlockEntity {
                                                 loopPos,
                                                 true
                                             )
-                                            level().scheduleTick(blockPos, dustState.block, 1)
+                                            level().scheduleTick(blockPos, dustBlock.block, 1)
                                         }
                                         return discard()
                                     } else {
                                         place(
-                                            dustState.setValue(DustLayerBlock.LAYERS, DustLayerBlock.MAX_LAYERS),
+                                            dustBlock.setValue(DustLayerBlock.LAYERS, DustLayerBlock.MAX_LAYERS),
                                             loopState,
                                             loopPos,
                                             false
                                         )
                                     }
                                 } else {
-                                    drop(dustState, loopPos, true)
+                                    drop(dustBlock, loopPos, true)
                                 }
                             }
                         }
@@ -161,29 +157,29 @@ class FallingDustEntity : FallingBlockEntity {
                         )
                         val belowIsEmpty =
                             level().getBlockState(blockPos.below()).canBeReplaced() && (!isConcrete || !waterCheck)
-                        val blockCanSurvive = dustState.canSurvive(level(), blockPos) && !belowIsEmpty
+                        val blockCanSurvive = dustBlock.canSurvive(level(), blockPos) && !belowIsEmpty
                         if (worldReplaceable && blockCanSurvive) {
-                            if (dustState.hasProperty(BlockStateProperties.WATERLOGGED) &&
+                            if (dustBlock.hasProperty(BlockStateProperties.WATERLOGGED) &&
                                 level().getFluidState(blockPos).type === Fluids.WATER
                             ) {
-                                dustState = dustState.setValue(
+                                dustBlock = dustBlock.setValue(
                                     BlockStateProperties.WATERLOGGED,
                                     true
                                 )
                             }
 
-                            if (!place(dustState, worldState, blockPos, true)) {
-                                drop(dustState, blockPos, true)
+                            if (!place(dustBlock, worldState, blockPos, true)) {
+                                drop(dustBlock, blockPos, true)
                             }
                         } else {
-                            drop(dustState, blockPos, true)
+                            drop(dustBlock, blockPos, true)
                         }
                     }
                 } else if (!level().isClientSide &&
                     (time % 40 == 0 &&
                             (blockPos.y <= level().minBuildHeight || blockPos.y > level().maxBuildHeight) || time > 600)
                 ) {
-                    drop(dustState, blockPos, false)
+                    drop(dustBlock, blockPos, false)
                 }
             }
 
@@ -202,7 +198,7 @@ class FallingDustEntity : FallingBlockEntity {
                 (state.block as Fallable).onLand(
                     level(),
                     pos,
-                    dustState,
+                    dustBlock,
                     worldState,
                     this
                 )
