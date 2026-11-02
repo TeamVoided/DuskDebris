@@ -3,6 +3,7 @@ package org.teamvoided.dusk_debris.init
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.client.renderer.entity.FallingBlockRenderer
 import net.minecraft.client.renderer.entity.NoopRenderer
 import net.minecraft.client.renderer.entity.ThrownItemRenderer
 import net.minecraft.world.entity.Mob
@@ -49,6 +50,8 @@ object DuskEntitiesClient {
         DuskEntityLists.THROWABLE_BOMB_ENTITIES.forEach {
             register(it, ::ThrownItemRenderer)
         }
+
+        register(DuskEntities.FALLING_DUST, ::FallingBlockRenderer)
 
         // DnD
         register(DuskEntities.CHILL_CHARGE, ::ChillChargeEntityRenderer)
