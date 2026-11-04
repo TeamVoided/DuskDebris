@@ -13,7 +13,7 @@ import net.minecraft.world.item.SpawnEggItem
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.DuskDebris.id
-import org.teamvoided.dusk_debris.block.entity.FallingDustEntity
+import org.teamvoided.dusk_debris.entity.FallingDustEntity
 import org.teamvoided.dusk_debris.entity.*
 import org.teamvoided.dusk_debris.entity.projectile.FlyingPumpkinProjectile
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity

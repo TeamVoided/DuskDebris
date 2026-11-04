@@ -17,6 +17,9 @@ import org.teamvoided.dusks_and_dungeons.block.entity.*
 object DuskBlockEntities {
     fun init() {}
 
+    val DUST_FALLS: BlockEntityType<DustFallsBlockEntity> =
+        register("dust_falls", BlockEntityType.Builder.of(::DustFallsBlockEntity, DuskBlocks.DUST_FALLS))
+
     val TREASURE_CHEST: BlockEntityType<TreasureChestBlockEntity> = register(
         "treasure_chest", BlockEntityType.Builder.of(
             ::TreasureChestBlockEntity,

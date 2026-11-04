@@ -85,6 +85,8 @@ object DuskBlocks {
                     blockState.getValue(DustLayerBlock.LAYERS) >= DustLayerBlock.MAX_LAYERS
                 }
                 .pushReaction(PushReaction.DESTROY)))
+    val DUST_FALLS = register("dust_falls", DustFallsBlock(ofFullCopy(DUST_BLOCK)))
+
 
     val EXHAUST_BLOCK = register("exhaust_block", ExhaustBlock(ofFullCopy(DEEPSLATE).randomTicks()))
 

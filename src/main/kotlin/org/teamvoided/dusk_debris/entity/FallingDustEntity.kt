@@ -1,4 +1,4 @@
-package org.teamvoided.dusk_debris.block.entity
+package org.teamvoided.dusk_debris.entity
 
 import com.mojang.logging.LogUtils
 import net.minecraft.core.BlockPos
@@ -54,8 +54,8 @@ class FallingDustEntity : FallingBlockEntity {
     var dustBlock: BlockState = DuskBlocks.DUST_LAYER.defaultBlockState()
         set(value) {
             field = value
-            if (value.hasProperty(DustLayerBlock.LAYERS)) {
-                layerCount = value.getValue(DustLayerBlock.LAYERS)
+            if (value.hasProperty(DustLayerBlock.Companion.LAYERS)) {
+                layerCount = value.getValue(DustLayerBlock.Companion.LAYERS)
                 refreshDimensions()
             }
         }
@@ -68,10 +68,9 @@ class FallingDustEntity : FallingBlockEntity {
     }
 
     override fun tick() {
-        if (dustBlock.isAir) {
+        if (dustBlock.block != DustLayerBlock) {
             discard()
         } else {
-            val block = dustBlock.block
             time++
             applyGravity()
             move(MoverType.SELF, deltaMovement)
@@ -226,7 +225,7 @@ class FallingDustEntity : FallingBlockEntity {
     }
 
     companion object {
-        private const val DIMENSION_SCALE = 1f / DustLayerBlock.MAX_LAYERS
+        private const val DIMENSION_SCALE = 1f / DustLayerBlock.Companion.MAX_LAYERS
         private val LOGGER: Logger = LogUtils.getLogger()
         fun fall(level: Level, blockPos: BlockPos, blockState: BlockState): FallingBlockEntity {
             val entity = FallingDustEntity(
