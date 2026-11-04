@@ -18,7 +18,7 @@ class DustFallsBlockEntity(blockPos: BlockPos, blockState: BlockState) :
     BlockEntity(DuskBlockEntities.DUST_FALLS, blockPos, blockState) {
     var distance: Int = DustLayerBlock.MAX_LAYERS
 
-    fun tryOpenSides(
+    fun tryOpenSide(
         blockState: BlockState,
         direction: Direction,
         blockState2: BlockState,
@@ -70,7 +70,7 @@ class DustFallsBlockEntity(blockPos: BlockPos, blockState: BlockState) :
                                 DustLayerBlock.summonFalling(level, pos, layer)
                             return
                         } else {
-                            blockEntity.tryOpenSides(state, it, level.getBlockState(pos2), level, pos, pos2)
+                            blockEntity.tryOpenSide(state, it, level.getBlockState(pos2), level, pos, pos2)
                         }
                     }
                 }

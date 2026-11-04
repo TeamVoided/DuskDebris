@@ -8,7 +8,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.BaseEntityBlock
 import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.entity.BellBlockEntity
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityTicker
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -64,7 +63,7 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
         val blockEntity = level.getBlockEntity(blockPos)
         if (blockEntity is DustFallsBlockEntity) {
             Direction.Plane.HORIZONTAL.forEach {
-                blockEntity.tryOpenSides(blockState, it, blockState2, level, blockPos, blockPos.relative(it))
+                blockEntity.tryOpenSide(blockState, it, blockState2, level, blockPos, blockPos.relative(it))
             }
         }
     }
@@ -79,7 +78,7 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
     ): BlockState? {
         val blockEntity = levelAccessor.getBlockEntity(blockPos)
         if (blockEntity is DustFallsBlockEntity) {
-            return blockEntity.tryOpenSides(blockState, direction, blockState2, levelAccessor, blockPos, blockPos2)
+            return blockEntity.tryOpenSide(blockState, direction, blockState2, levelAccessor, blockPos, blockPos2)
         }
         return super.updateShape(blockState, direction, blockState2, levelAccessor, blockPos, blockPos2)
     }
