@@ -184,12 +184,12 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
                 }
             }
             dirs.forEach { //do horizontal logic
-                horizontalLogic(serverLevel, pos1, state1, it)
+                if (horizontalLogic(serverLevel, pos1, state1, it)) return
             }
         }
     }
 
-    fun horizontalLogic(serverLevel: ServerLevel, pos1: BlockPos, state1: BlockState, direction: Direction) {
+    fun horizontalLogic(serverLevel: ServerLevel, pos1: BlockPos, state1: BlockState, direction: Direction): Boolean {
         val layers1 = state1.getValue(LAYERS)
         val pos2 = pos1.relative(direction)
         val state2 = serverLevel.getBlockState(pos2)
@@ -198,14 +198,18 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             if (layers1 - 1 > layers2 ||
                 (layers1 == MAX_LAYERS && MAX_LAYERS > layers2 && serverLevel.getBlockState(pos1.above()).block == state1.block)
             ) {
-                return moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+                moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+                return true
             } else if (layers2 - 1 > layers1) {
                 //because that means something wrong
-                return serverLevel.scheduleTick(pos2, state2.block, DELAY_MOVE)
+                serverLevel.scheduleTick(pos2, state2.block, DELAY_MOVE)
+                return true
             }
         } else if (canSurviveAndReplace(state1, serverLevel, pos2)) {
-            return moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+            moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+            return true
         }
+        return false
     }
 
     fun moveLayer(

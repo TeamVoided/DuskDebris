@@ -31,7 +31,6 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.teamvoided.dusk_debris.block.entity.DustFallsBlockEntity
 import org.teamvoided.dusk_debris.block.not_blocks.DuskProperties
 import org.teamvoided.dusk_debris.init.DuskBlockEntities
-import org.teamvoided.dusk_debris.init.DuskBlocks
 import org.teamvoided.dusk_debris.util.symmetricalBoxY
 
 class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
@@ -101,32 +100,31 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
         randomSource: RandomSource
     ) {
         serverLevel.setBlock(pos1, updateDistance(state1, serverLevel, pos1), 3)
-            val pos1Above = pos1.above()
-            val worldState = serverLevel.getBlockState(pos1Above)
-            if (worldState.block is DustLayerBlock) {
-                getDirList(state1).shuffled().forEach {
-                    if (it != Direction.DOWN) {
-                        (worldState.block as DustLayerBlock).horizontalLogic(serverLevel, pos1Above,worldState,it)
-                }
+        val pos1Above = pos1.above()
+        val worldState = serverLevel.getBlockState(pos1Above)
+        if (worldState.block is DustLayerBlock) {
+            val block = (worldState.block as DustLayerBlock)
+            getDirList(state1).shuffled().forEach {
+                if (it != Direction.DOWN && block.horizontalLogic(serverLevel, pos1Above, worldState, it)) return
             }
+
         }
     }
 
     private fun updateDistance(blockState: BlockState, levelAccessor: LevelAccessor, blockPos: BlockPos): BlockState {
-        val layer = DuskBlocks.DUST_LAYER as DustLayerBlock
         var i = MAX_DISTANCE
         val d = mutableListOf<Direction>()
         val mutableBlockPos = MutableBlockPos()
-        for (direction in Direction.entries) {
-            if (direction != Direction.UP) {
-                mutableBlockPos.setWithOffset(blockPos, direction)
+        for (dir in Direction.entries) {
+            if (dir != Direction.UP) {
+                mutableBlockPos.setWithOffset(blockPos, dir)
                 val dist = getDistanceAt(levelAccessor.getBlockState(mutableBlockPos)) + 1
                 if (dist <= i) {
                     if (dist < i) {
                         d.clear()
                         i = dist
                     }
-                    d.add(direction)
+                    d.add(dir)
                 }
             }
         }
