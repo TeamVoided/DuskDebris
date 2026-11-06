@@ -8,6 +8,8 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.data.tags.DuskBlockTags
 import org.teamvoided.dusk_debris.util.velocityWind
+import kotlin.math.min
+import kotlin.math.max
 
 object WindLogic {
     fun Entity.inFanWind(velocity: Vec3) {
@@ -37,12 +39,12 @@ object WindLogic {
             if (input < 0)
                 old + input
             else
-                Math.max(old, input)
+                max(old, input)
         } else {
             if (input >= 0)
                 old + input
             else
-                Math.min(old, input)
+                min(old, input)
         }
     }
 

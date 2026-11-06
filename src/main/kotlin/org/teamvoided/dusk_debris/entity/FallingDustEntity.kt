@@ -1,246 +1,278 @@
 package org.teamvoided.dusk_debris.entity
 
 import com.mojang.logging.LogUtils
+import net.minecraft.CrashReportCategory
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
+import net.minecraft.core.registries.Registries
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
+import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.game.ClientGamePacketListener
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
+import net.minecraft.network.syncher.EntityDataAccessor
+import net.minecraft.network.syncher.EntityDataSerializers
+import net.minecraft.network.syncher.SynchedEntityData
+import net.minecraft.server.level.ServerEntity
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.tags.FluidTags
-import net.minecraft.world.entity.EntityDimensions
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.MoverType
-import net.minecraft.world.entity.Pose
-import net.minecraft.world.entity.item.FallingBlockEntity
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.context.DirectionalPlaceContext
-import net.minecraft.world.level.ClipContext
+import net.minecraft.world.entity.*
 import net.minecraft.world.level.GameRules
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.ConcretePowderBlock
-import net.minecraft.world.level.block.Fallable
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.level.storage.loot.BuiltInLootTables
+import net.minecraft.world.level.material.PushReaction
 import net.minecraft.world.level.storage.loot.LootParams
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
-import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.slf4j.Logger
 import org.teamvoided.dusk_debris.block.DustLayerBlock
 import org.teamvoided.dusk_debris.init.DuskBlocks
 import org.teamvoided.dusk_debris.init.DuskEntities
-import kotlin.math.ceil
 
-class FallingDustEntity : FallingBlockEntity {
-    constructor(entityType: EntityType<out FallingBlockEntity>, level: Level) : super(entityType, level)
-    constructor(level: Level, x: Double, y: Double, z: Double, blockState: BlockState) : this(
-        DuskEntities.FALLING_DUST,
-        level
-    ) {
-        dustBlock = blockState
+class FallingDustEntity(entityType: EntityType<out FallingDustEntity>, level: Level) : Entity(entityType, level) {
+    var blockState: BlockState = DuskBlocks.DUST_LAYER.defaultBlockState()
+        private set
+    var dropItem: Boolean = true
+    var blockData: CompoundTag? = null
+    var layerCount: Int
+        get() = entityData.get(DATA_LAYERS)
+        set(int) = entityData.set(DATA_LAYERS, int)
+    var startPos: BlockPos
+        get() = entityData.get(DATA_START_POS)
+        set(blockPos) = entityData.set(DATA_START_POS, blockPos)
+    var prevY: Int = startPos.y
+
+    private constructor(
+        level: Level,
+        d: Double,
+        e: Double,
+        f: Double,
+        state: BlockState,
+        layers: Int
+    ) : this(DuskEntities.FALLING_DUST, level) {
+        blockState = state
+        layerCount = layers
         blocksBuilding = true
-        setPos(x, y, z)
+        setPos(d, e, f)
         deltaMovement = Vec3.ZERO
-        xo = x
-        yo = y
-        zo = z
+        xo = d
+        yo = e
+        zo = f
         startPos = blockPosition()
+        prevY = startPos.y
     }
 
-    var layerCount: Int = 1
-    var dustBlock: BlockState = DuskBlocks.DUST_LAYER.defaultBlockState()
-        set(value) {
-            field = value
-            if (value.hasProperty(DustLayerBlock.Companion.LAYERS)) {
-                layerCount = value.getValue(DustLayerBlock.Companion.LAYERS)
-                refreshDimensions()
-            }
-        }
 
-    override fun getBlockState(): BlockState = dustBlock
-
-
-    override fun getDimensions(pose: Pose): EntityDimensions {
-        return EntityDimensions.scalable(0.98f, layerCount * DIMENSION_SCALE)
+    override fun defineSynchedData(builder: SynchedEntityData.Builder) {
+        builder.define(DATA_START_POS, BlockPos.ZERO)
+        builder.define(DATA_LAYERS, 1)
     }
+
 
     override fun tick() {
-        if (dustBlock.block != DustLayerBlock) {
-            discard()
-        } else {
-            time++
+        if (!level().isClientSide) {
             applyGravity()
             move(MoverType.SELF, deltaMovement)
-            handlePortal()
-            if (!level().isClientSide && (isAlive || forceTickAfterTeleportToDuplicate)) {
-                var blockPos = blockPosition()
-                val isConcrete = dustBlock.block is ConcretePowderBlock
-                var waterCheck = isConcrete && level().getFluidState(blockPos).`is`(FluidTags.WATER)
-                val speed = deltaMovement.lengthSqr()
-                if (isConcrete && speed > 1.0) {
-                    val blockHitResult = level().clip(
-                        ClipContext(
-                            Vec3(xo, yo, zo),
-                            position(),
-                            ClipContext.Block.COLLIDER,
-                            ClipContext.Fluid.SOURCE_ONLY,
-                            this
-                        )
-                    )
-                    if (blockHitResult.type != HitResult.Type.MISS &&
-                        level().getFluidState(blockHitResult.blockPos).`is`(FluidTags.WATER)
-                    ) {
-                        blockPos = blockHitResult.blockPos
-                        waterCheck = true
-                    }
-                }
-
-                if (onGround() || waterCheck) {
-                    val worldState = level().getBlockState(blockPos)
-                    deltaMovement = deltaMovement.multiply(0.7, -0.5, 0.7)
-                    if (worldState.`is`(dustBlock.block)) {
-                        val worldLayerCount = worldState.getValue(DustLayerBlock.LAYERS) +
-                                DustLayerBlock.getLayerCountDir(level(), blockPos, Direction.UP)
-                        val layerSum = worldLayerCount + layerCount
-                        if (layerSum <= DustLayerBlock.MAX_LAYERS) {
-                            place(dustBlock.setValue(DustLayerBlock.LAYERS, layerSum), worldState, blockPos, true)
-                            level().scheduleTick(blockPos, dustBlock.block, 1)
-                        } else {
-                            val layerBlockHeight = ceil(layerSum.toDouble() / DustLayerBlock.MAX_LAYERS).toInt()
-                            for (i in 1..layerBlockHeight) {
-                                val loopPos = blockPos.above(i - 1)
-                                val loopState = level().getBlockState(loopPos)
-                                if (dustBlock.canSurvive(level(), loopPos) && loopState.canBeReplaced()) {
-                                    if (i == layerBlockHeight) {
-                                        if (layerSum % DustLayerBlock.MAX_LAYERS != 0) {
-                                            place(
-                                                dustBlock.setValue(
-                                                    DustLayerBlock.LAYERS,
-                                                    layerSum % DustLayerBlock.MAX_LAYERS
-                                                ),
-                                                loopState,
-                                                loopPos,
-                                                true
-                                            )
-                                            level().scheduleTick(blockPos, dustBlock.block, 1)
-                                        }
-                                        return discard()
-                                    } else {
-                                        place(
-                                            dustBlock.setValue(DustLayerBlock.LAYERS, DustLayerBlock.MAX_LAYERS),
-                                            loopState,
-                                            loopPos,
-                                            false
-                                        )
-                                    }
-                                } else {
-                                    drop(dustBlock, loopPos, true)
-                                }
-                            }
-                        }
-                        return discard()
-                    }
-
-                    if (!worldState.`is`(Blocks.MOVING_PISTON)) {
-                        val worldReplaceable = worldState.canBeReplaced(
-                            DirectionalPlaceContext(
-                                level(),
-                                blockPos,
-                                Direction.DOWN,
-                                ItemStack.EMPTY,
-                                Direction.UP
-                            )
-                        )
-                        val belowIsEmpty =
-                            level().getBlockState(blockPos.below()).canBeReplaced() && (!isConcrete || !waterCheck)
-                        val blockCanSurvive = dustBlock.canSurvive(level(), blockPos) && !belowIsEmpty
-                        if (worldReplaceable && blockCanSurvive) {
-                            if (dustBlock.hasProperty(BlockStateProperties.WATERLOGGED) &&
-                                level().getFluidState(blockPos).type === Fluids.WATER
-                            ) {
-                                dustBlock = dustBlock.setValue(
-                                    BlockStateProperties.WATERLOGGED,
-                                    true
-                                )
-                            }
-
-                            if (!place(dustBlock, worldState, blockPos, true)) {
-                                drop(dustBlock, blockPos, true)
-                            }
-                        } else {
-                            drop(dustBlock, blockPos, true)
-                        }
-                    }
-                } else if (!level().isClientSide &&
-                    (time % 40 == 0 &&
-                            (blockPos.y <= level().minBuildHeight || blockPos.y > level().maxBuildHeight) || time > 600)
-                ) {
-                    drop(dustBlock, blockPos, false)
-                }
+            if (prevY != blockPosition().y) {
+                prevY = blockPosition().y
+                doTryPlaceLogic()
             }
-
-            deltaMovement = deltaMovement.scale(0.98)
         }
     }
 
-    fun place(state: BlockState, worldState: BlockState, pos: BlockPos, discard: Boolean): Boolean {
-        if (level().setBlock(pos, state, 3)) {
-            (level() as ServerLevel).chunkSource.chunkMap.broadcast(
-                this,
-                ClientboundBlockUpdatePacket(pos, level().getBlockState(pos))
-            )
-            if (discard) discard()
-            if (state.block is Fallable) {
-                (state.block as Fallable).onLand(
+    private fun doTryPlaceLogic() {
+        val block = blockState.block
+        if (block is DustLayerBlock) {
+            if (!level().getFluidState(blockPosition()).isEmpty) {
+                return if (layerCount > DustLayerBlock.MAX_LAYERS) {
+                    layerCount -= DustLayerBlock.MAX_LAYERS
+                    setPos(position().add(0.0, 1.0, 0.0))
+                } else {
+                    discard()
+                }
+
+                TODO("dust clouds")
+            }
+            val worldstate = level().getBlockState(blockPosition())
+            if (worldstate.`is`(block)) {
+                placeDustColumn(
                     level(),
-                    pos,
-                    dustBlock,
-                    worldState,
-                    this
+                    blockPosition(),
+                    layerCount + worldstate.getValue(DustLayerBlock.LAYERS)
                 )
+                return level().scheduleTick(blockPosition(), block, 1)
+            } else if (block.canSurviveAndReplace(blockState, level(), blockPosition())) {
+                placeDustColumn(level(), blockPosition(), layerCount)
+                return level().scheduleTick(blockPosition(), block, 1)
+            } else if ((tickCount % 40 == 0 &&
+                        (prevY <= level().minBuildHeight || prevY > level().maxBuildHeight)
+                        || tickCount > 600)
+            ) {
+                return drop(blockState, position())
             }
-            return true
+        } else {
+            return drop(blockState, position())
         }
-        return false
     }
 
-    fun drop(state: BlockState, pos: BlockPos, placed: Boolean) {
+    private fun placeDustColumn(level: Level, pos: BlockPos, layers: Int) {
+        if (layers > DustLayerBlock.MAX_LAYERS) {
+            setBlock(pos, blockState.setValue(DustLayerBlock.LAYERS, DustLayerBlock.MAX_LAYERS))
+            if (!blockState.canSurvive(level, pos.above(2))) {
+                placeDustColumn(level, pos, layers - DustLayerBlock.MAX_LAYERS)
+            }
+        } else {
+            setBlock(pos, blockState.setValue(DustLayerBlock.LAYERS, layers))
+        }
+    }
+
+    fun setBlock(blockPos: BlockPos, blockState: BlockState) {
+        if (level().setBlock(blockPos, blockState, 3)) {
+            (level() as ServerLevel)
+                .chunkSource
+                .chunkMap
+                .broadcast(this, ClientboundBlockUpdatePacket(blockPos, level().getBlockState(blockPos)))
+            discard()
+
+            if (blockData != null && blockState.hasBlockEntity()) {
+                val blockEntity = level().getBlockEntity(blockPos)
+                if (blockEntity != null) {
+                    val compoundTag = blockEntity.saveWithoutMetadata(level().registryAccess())
+
+                    for (string in blockData!!.allKeys) {
+                        compoundTag.put(string, blockData!!.get(string)!!.copy())
+                    }
+
+                    try {
+                        blockEntity.loadWithComponents(compoundTag, level().registryAccess())
+                    } catch (var15: Exception) {
+                        LOGGER.error("Failed to load block entity from falling block", var15 as Throwable)
+                    }
+
+                    blockEntity.setChanged()
+                }
+            }
+        }
+    }
+
+    private fun drop(state: BlockState, pos: Vec3) {
         if (dropItem && level().gameRules.getBoolean(GameRules.RULE_DOENTITYDROPS)) {
             val serverLevel = level() as ServerLevel
-            val lootTable = serverLevel.server.reloadableRegistries().getLootTable(BuiltInLootTables.PANDA_SNEEZE)
+            val lootTable = serverLevel.server.reloadableRegistries().getLootTable(state.block.lootTable)
             val lootParams = LootParams.Builder(serverLevel)
-                .withParameter(LootContextParams.ORIGIN, pos.center)
+                .withParameter(LootContextParams.ORIGIN, pos)
                 .withParameter(LootContextParams.THIS_ENTITY, this)
-                .withParameter(LootContextParams.DAMAGE_SOURCE, this.damageSources().fall())
+                .withParameter(LootContextParams.DAMAGE_SOURCE, damageSources().fall())
                 .create(LootContextParamSets.ENTITY)
             for (itemStack in lootTable.getRandomItems(lootParams)) {
-                this.spawnAtLocation(itemStack)
+                spawnAtLocation(itemStack)
             }
         }
-        if (placed) callOnBrokenAfterFall(state.block, pos)
         discard()
     }
 
+    override fun addAdditionalSaveData(compoundTag: CompoundTag) {
+        compoundTag.put("BlockState", NbtUtils.writeBlockState(blockState))
+        compoundTag.putInt("LayerCount", layerCount)
+        compoundTag.putBoolean("DropItem", dropItem)
+        if (blockData != null) {
+            compoundTag.put("TileEntityData", blockData)
+        }
+
+    }
+
+    override fun readAdditionalSaveData(compoundTag: CompoundTag) {
+        blockState = NbtUtils.readBlockState(
+            level().holderLookup(Registries.BLOCK),
+            compoundTag.getCompound("BlockState")
+        )
+        if (compoundTag.contains("LayerCount")) layerCount = compoundTag.getInt("LayerCount")
+        if (compoundTag.contains("DropItem", 99)) dropItem = compoundTag.getBoolean("DropItem")
+        if (compoundTag.contains("TileEntityData", 10)) blockData =
+            compoundTag.getCompound("TileEntityData").copy()
+        if (blockState.isAir) blockState = DuskBlocks.DUST_LAYER.defaultBlockState()
+    }
+
+
+    override fun fillCrashReportCategory(crashReportCategory: CrashReportCategory) {
+        super.fillCrashReportCategory(crashReportCategory)
+        crashReportCategory.setDetail("Imitating BlockState", blockState.toString())
+    }
+
+
+    override fun onSyncedDataUpdated(entityDataAccessor: EntityDataAccessor<*>) {
+        if (DATA_LAYERS == entityDataAccessor) refreshDimensions()
+        super.onSyncedDataUpdated(entityDataAccessor)
+    }
+
+    override fun refreshDimensions() {
+        val z = x
+        val y = y
+        val x = z
+        super.refreshDimensions()
+        setPos(x, y, z)
+    }
+
+    override fun getDimensions(pose: Pose): EntityDimensions =
+        EntityDimensions.scalable(0.95f, layerCount * DIMENSION_SCALE)
+
+    override fun isAttackable(): Boolean = false
+    override fun getMovementEmission(): MovementEmission = MovementEmission.NONE
+    override fun isPickable(): Boolean = !isRemoved
+    override fun getDefaultGravity(): Double = 0.04
+    override fun displayFireAnimation(): Boolean = false
+    override fun onlyOpCanSetNbt(): Boolean = true
+    override fun getPistonPushReaction(): PushReaction = PushReaction.DESTROY
+    override fun getTypeName(): Component =
+        Component.translatable("entity.minecraft.falling_block_type", blockState.block.name)
+
+    override fun getAddEntityPacket(serverEntity: ServerEntity): Packet<ClientGamePacketListener?> {
+        return ClientboundAddEntityPacket(this, serverEntity, Block.getId(blockState))
+    }
+
+    override fun recreateFromPacket(clientboundAddEntityPacket: ClientboundAddEntityPacket) {
+        super.recreateFromPacket(clientboundAddEntityPacket)
+        blockState = Block.stateById(clientboundAddEntityPacket.data)
+        blocksBuilding = true
+        val d = clientboundAddEntityPacket.x
+        val e = clientboundAddEntityPacket.y
+        val f = clientboundAddEntityPacket.z
+        setPos(d, e, f)
+        startPos = blockPosition()
+    }
+
     companion object {
-        private const val DIMENSION_SCALE = 1f / DustLayerBlock.Companion.MAX_LAYERS
         private val LOGGER: Logger = LogUtils.getLogger()
-        fun fall(level: Level, blockPos: BlockPos, blockState: BlockState): FallingBlockEntity {
-            val entity = FallingDustEntity(
+        private const val DIMENSION_SCALE = 1f / DustLayerBlock.MAX_LAYERS
+        private val DATA_LAYERS: EntityDataAccessor<Int> =
+            SynchedEntityData.defineId(FallingDustEntity::class.java, EntityDataSerializers.INT)
+
+        private val DATA_START_POS: EntityDataAccessor<BlockPos> =
+            SynchedEntityData.defineId(FallingDustEntity::class.java, EntityDataSerializers.BLOCK_POS)
+
+        fun fall(
+            level: Level,
+            blockPos: BlockPos,
+            blockState: BlockState,
+            layers: Int = blockState.getValue(DustLayerBlock.LAYERS)
+        ): FallingDustEntity? {
+            val fallingDustEntity = FallingDustEntity(
                 level,
-                blockPos.x + 0.5,
+                blockPos.x.toDouble() + 0.5,
                 blockPos.y.toDouble(),
-                blockPos.z + 0.5,
-                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED))
-                    blockState.setValue(BlockStateProperties.WATERLOGGED, false)
-                else
-                    blockState
+                blockPos.z.toDouble() + 0.5,
+                if (blockState.hasProperty(BlockStateProperties.WATERLOGGED)) blockState.setValue(
+                    BlockStateProperties.WATERLOGGED,
+                    false
+                ) else blockState,
+                layers
             )
             level.setBlock(blockPos, blockState.fluidState.createLegacyBlock(), 3)
-            level.addFreshEntity(entity)
-            return entity
+            level.addFreshEntity(fallingDustEntity)
+            return fallingDustEntity
         }
     }
 }

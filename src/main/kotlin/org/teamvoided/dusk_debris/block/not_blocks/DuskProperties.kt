@@ -3,6 +3,7 @@ package org.teamvoided.dusk_debris.block.not_blocks
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.level.block.state.properties.IntegerProperty
+import org.teamvoided.dusk_debris.block.DustLayerBlock
 
 object DuskProperties {
     @kotlin.jvm.JvmField
@@ -12,6 +13,8 @@ object DuskProperties {
     val CHALICES: IntegerProperty = IntegerProperty.create("chalices", 1, 4)
     val DISTANCE_1_15: IntegerProperty = IntegerProperty.create("distance", 1, 15)
     val DISTANCE_0_14: IntegerProperty = IntegerProperty.create("distance", 0, 14)
+    val DISTANCE_DUST: IntegerProperty = IntegerProperty.create("distance", 1, DustLayerBlock.MAX_LAYERS)
+
 
     val SQUISHED: BooleanProperty = BooleanProperty.create("squished")
     val LID: BooleanProperty = BooleanProperty.create("lid")

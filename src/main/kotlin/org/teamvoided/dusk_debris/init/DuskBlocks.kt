@@ -77,15 +77,24 @@ object DuskBlocks {
     val DUST_LAYER = register(
         "dust", DustLayerBlock(
             ofFullCopy(DUST_BLOCK)
+                .strength(0.2f)
                 .replaceable()
                 .forceSolidOff()
-                .strength(0.2f)
                 .requiresCorrectToolForDrops()
                 .isViewBlocking { blockState, blockGetter, blockPos ->
                     blockState.getValue(DustLayerBlock.LAYERS) >= DustLayerBlock.MAX_LAYERS
                 }
                 .pushReaction(PushReaction.DESTROY)))
-    val DUST_FALLS = register("dust_falls", DustFallsBlock(ofFullCopy(DUST_BLOCK)))
+    val DUST_FALLS = register(
+        "dust_falls", DustFallsBlock(
+            ofFullCopy(DUST_BLOCK)
+                .speedFactor(0.8f)
+                .isValidSpawn(Blocks::always)
+                .isRedstoneConductor(Blocks::always)
+                .isViewBlocking(Blocks::always)
+                .isSuffocating(Blocks::always)
+        )
+    )
 
 
     val EXHAUST_BLOCK = register("exhaust_block", ExhaustBlock(ofFullCopy(DEEPSLATE).randomTicks()))

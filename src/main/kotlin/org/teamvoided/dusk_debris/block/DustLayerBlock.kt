@@ -80,16 +80,18 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         return if (blockState.getValue(LAYERS) == MAX_LAYERS) 0.2f else 1f
     }
 
+    // !canSurvive(blockState, level, blockPos.above()) is canReplace
     override fun canSurvive(blockState: BlockState, levelReader: LevelReader, blockPos: BlockPos): Boolean {
-        return canSurvive(levelReader, blockPos)
-    }
-
-    // !canSurvive(level, blockPos.above()) is canReplace
-    fun canSurvive(levelReader: LevelReader, blockPos: BlockPos): Boolean {
         val blockState2 = levelReader.getBlockState(blockPos.below())
         if (blockState2.`is`(this)) return blockState2.getValue(LAYERS) == MAX_LAYERS
         return !blockState2.canBeReplaced()
     }
+
+    fun canReplace(blockState: BlockState, levelReader: LevelReader, blockPos: BlockPos): Boolean =
+        !canSurvive(blockState, levelReader, blockPos.above())
+
+    fun canSurviveAndReplace(blockState: BlockState, levelReader: LevelReader, blockPos: BlockPos): Boolean =
+        canSurvive(blockState, levelReader, blockPos) && canReplace(blockState, levelReader, blockPos)
 
     override fun updateShape(
         state1: BlockState,
@@ -119,19 +121,26 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         pos1: BlockPos, state1: BlockState,
         pos2: BlockPos, state2: BlockState
     ): Boolean {
-        if (state2.`is`(this)) {
-            if (state2.getValue(LAYERS) != MAX_LAYERS) {
+        if (state2.`is`(this)) { //checks if new block is this and moves a layer there
+            if (state2.getValue(LAYERS) != MAX_LAYERS) { //checks if it is not max layers
                 moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
                 return false
             }
-        } else if (!canSurvive(serverLevel, pos2.above())) {
-            if (canSurvive(serverLevel, pos2)) {
+        } else if (canReplace(state1, serverLevel, pos2)) { //if world at pos2 is replaceable
+            if (canSurvive(state1, serverLevel, pos2)) { //if layer could place at pos2 move a layer there
                 moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
                 return false
             } else {
-                serverLevel.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
-                summonFalling(serverLevel, pos2, state1)
-                return false
+                val layers1 = state1.getValue(LAYERS)
+                if (layers1 == 1 || pos2 == pos1.below()) {
+                    serverLevel.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
+                    summonFalling(serverLevel, pos2, state1)
+                    return false
+                } else {
+                    serverLevel.setBlock(pos1, state1.setValue(LAYERS, layers1 - 1), 3)
+                    summonFalling(serverLevel, pos2, state1.setValue(LAYERS, 1))
+                    return false
+                }
             }
         }
         return true
@@ -161,40 +170,42 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             if (!canContinue) return
         }
         val layers1 = state1.getValue(LAYERS)
-        val dirs = Direction.Plane.HORIZONTAL.shuffled()
-        dirs.forEach { //do horizontally below logic
-            val pos2 = pos1.relative(it)
-            val state2 = serverLevel.getBlockState(pos2)
-            if (!state2.isFaceSturdy(serverLevel, pos2, it.opposite) &&
-                !state2.isFaceSturdy(serverLevel, pos2, Direction.DOWN)
-            ) {
-                val pos2Down = pos2.below()
-                val state2Down = serverLevel.getBlockState(pos2Down)
-                if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos2Down, state2Down)) return
-            }
-        }
-        val isFull = layers1 == MAX_LAYERS
-        if (layers1 > 1) {
-            dirs.forEach { //do horizontal logic
+        if (layers1 > 1 || !state1Down.isFaceSturdy(serverLevel, pos1Down, Direction.UP)) {
+            val dirs = Direction.Plane.HORIZONTAL.shuffled()
+            dirs.forEach { //do horizontally below logic
                 val pos2 = pos1.relative(it)
                 val state2 = serverLevel.getBlockState(pos2)
-                if (state2.`is`(this)) {
-                    val layers2 = state2.getValue(LAYERS)
-                    if (layers1 - 1 > layers2 ||
-                        (isFull && MAX_LAYERS > layers2 && serverLevel.getBlockState(pos1.above()).`is`(this))
-                    ) {
-                        return moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
-                    } else if (layers2 - 1 > layers1) {
-                        return serverLevel.scheduleTick(pos2, this, DELAY_MOVE)
-                    }
-                } else if (canSurvive(serverLevel, pos2) && !canSurvive(serverLevel, pos2.above())) {
-                    return moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+                if (!state2.isFaceSturdy(serverLevel, pos2, it.opposite) &&
+                    !state2.isFaceSturdy(serverLevel, pos2, Direction.DOWN)
+                ) {
+                    val pos2Down = pos2.below()
+                    val state2Down = serverLevel.getBlockState(pos2Down)
+                    if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos2Down, state2Down)) return
                 }
             }
+            dirs.forEach { //do horizontal logic
+                horizontalLogic(serverLevel, pos1, state1, it)
+            }
         }
-        //else if (isFull && serverLevel.getBlockState(pos1.above()).`is`(this)) {
-        //    return
-        //}
+    }
+
+    fun horizontalLogic(serverLevel: ServerLevel, pos1: BlockPos, state1: BlockState, direction: Direction) {
+        val layers1 = state1.getValue(LAYERS)
+        val pos2 = pos1.relative(direction)
+        val state2 = serverLevel.getBlockState(pos2)
+        if (state1.block == state2.block) {
+            val layers2 = state2.getValue(LAYERS)
+            if (layers1 - 1 > layers2 ||
+                (layers1 == MAX_LAYERS && MAX_LAYERS > layers2 && serverLevel.getBlockState(pos1.above()).block == state1.block)
+            ) {
+                return moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+            } else if (layers2 - 1 > layers1) {
+                //because that means something wrong
+                return serverLevel.scheduleTick(pos2, state2.block, DELAY_MOVE)
+            }
+        } else if (canSurviveAndReplace(state1, serverLevel, pos2)) {
+            return moveLayer(serverLevel, pos1, state1, pos2, state2, 1)
+        }
     }
 
     fun moveLayer(
@@ -257,11 +268,10 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
 
     companion object {
         val CODEC: MapCodec<DustLayerBlock> = simpleCodec(::DustLayerBlock)
+        val LAYERS: IntegerProperty = BlockStateProperties.LAYERS
         const val MAX_LAYERS: Int = 8
         private const val HEIGHT_IMPASSABLE: Int = (MAX_LAYERS / 2) + 1
-        private const val MAX_HEIGHT_SCAN: Int = 10
-        private const val DELAY_MOVE: Int = 4
-        val LAYERS: IntegerProperty = BlockStateProperties.LAYERS
+        const val DELAY_MOVE: Int = 4
         val SHAPE_BY_LAYER: Array<VoxelShape> = arrayOf(
             Shapes.empty(),
             layerShape(1),

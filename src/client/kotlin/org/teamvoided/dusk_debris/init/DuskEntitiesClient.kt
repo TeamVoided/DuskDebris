@@ -51,7 +51,7 @@ object DuskEntitiesClient {
             register(it, ::ThrownItemRenderer)
         }
 
-        register(DuskEntities.FALLING_DUST, ::FallingBlockRenderer)
+        register(DuskEntities.FALLING_DUST, ::NoopRenderer)
 
         // DnD
         register(DuskEntities.CHILL_CHARGE, ::ChillChargeEntityRenderer)

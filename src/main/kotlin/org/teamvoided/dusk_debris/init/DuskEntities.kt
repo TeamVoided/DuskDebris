@@ -13,7 +13,6 @@ import net.minecraft.world.item.SpawnEggItem
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.DuskDebris.id
-import org.teamvoided.dusk_debris.entity.FallingDustEntity
 import org.teamvoided.dusk_debris.entity.*
 import org.teamvoided.dusk_debris.entity.projectile.FlyingPumpkinProjectile
 import org.teamvoided.dusk_debris.entity.raccoon.RaccoonEntity
@@ -91,7 +90,7 @@ object DuskEntities {
     val FALLING_DUST = register(
         "falling_dust",
         EntityType.Builder.of(EntityType.EntityFactory(::FallingDustEntity), MobCategory.MISC)
-            .sized(0.98f, 0.98f)
+            .sized(0.95f, 1f)
             .eyeHeight(0.15f)
     )
 

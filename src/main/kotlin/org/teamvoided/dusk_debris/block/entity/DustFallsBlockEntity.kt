@@ -4,97 +4,94 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.util.RandomSource
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.MoverType
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.Vec3
 import org.teamvoided.dusk_debris.block.DustFallsBlock
 import org.teamvoided.dusk_debris.block.DustLayerBlock
 import org.teamvoided.dusk_debris.init.DuskBlockEntities
 import org.teamvoided.dusk_debris.init.DuskBlocks
-import kotlin.math.min
 
 class DustFallsBlockEntity(blockPos: BlockPos, blockState: BlockState) :
     BlockEntity(DuskBlockEntities.DUST_FALLS, blockPos, blockState) {
-    var distance: Int = DustLayerBlock.MAX_LAYERS
+    //textures needed
+    //  solid texture
+    //  flowing horizontally (use for side as well)
+    //  flowing diagonally
+    //textures wanted
+    //  shifting texture (static water) (use for side when state false?)
 
-    fun tryOpenSide(
-        blockState: BlockState,
-        direction: Direction,
-        blockState2: BlockState,
-        levelAccessor: LevelAccessor,
-        blockPos: BlockPos,
-        blockPos2: BlockPos
-    ): BlockState? {
-        if (direction.axis != Direction.Axis.Y) {
-            if (blockState2.`is`(this.blockState.block)) {
-                val blockEntity2 = levelAccessor.getBlockEntity(blockPos2)
-                if (blockEntity2 is DustFallsBlockEntity) {
-                    distance = min(distance, blockEntity2.distance + 1)
-                    blockState.setValue(
-                        DustFallsBlock.stateFromDirection(direction),
-                        blockEntity2.distance + 1 > DustLayerBlock.MAX_LAYERS
-                    )
-                }
-            }
-            val layer = DuskBlocks.DUST_LAYER.defaultBlockState()
-            if (!layer.canSurvive(levelAccessor, blockPos2.above())) {
-                distance = 1
-                return blockState.setValue(DustFallsBlock.stateFromDirection(direction), true)
-
-            }
-            distance = DustLayerBlock.MAX_LAYERS
-        }
-        return blockState
-    }
 
     companion object {
         //client tick doesn't care about the order since it plays every tick regardless of open faces
         //server tick must be rare and random
         fun clientTick(level: Level, pos: BlockPos, state: BlockState, blockEntity: DustFallsBlockEntity) {
-            val random = level.random
-            if (state.getValue(DustFallsBlock.NORTH)) particle(level, pos, state, Direction.NORTH, random)
-            if (state.getValue(DustFallsBlock.SOUTH)) particle(level, pos, state, Direction.SOUTH, random)
-            if (state.getValue(DustFallsBlock.EAST)) particle(level, pos, state, Direction.EAST, random)
-            if (state.getValue(DustFallsBlock.WEST)) particle(level, pos, state, Direction.WEST, random)
+            if (state.getValue(DustFallsBlock.DISTANCE) == DustFallsBlock.MIN_DISTANCE) {
+                val random = level.random
+                if (state.getValue(DustFallsBlock.DOWN)) particle(level, pos, state, Direction.DOWN, random)
+                if (state.getValue(DustFallsBlock.NORTH)) particle(level, pos, state, Direction.NORTH, random)
+                if (state.getValue(DustFallsBlock.SOUTH)) particle(level, pos, state, Direction.SOUTH, random)
+                if (state.getValue(DustFallsBlock.EAST)) particle(level, pos, state, Direction.EAST, random)
+                if (state.getValue(DustFallsBlock.WEST)) particle(level, pos, state, Direction.WEST, random)
+
+            }
         }
+
         fun serverTick(level: Level, pos: BlockPos, state: BlockState, blockEntity: DustFallsBlockEntity) {
-            val level = blockEntity.level ?: return
-            if (level.random.nextInt(5000) == 0) {
+            if (state.getValue(DustFallsBlock.DISTANCE) == DustFallsBlock.MIN_DISTANCE && level.random.nextInt(20) == 0) {
                 val layer = DuskBlocks.DUST_LAYER.defaultBlockState()
-                Direction.Plane.HORIZONTAL.shuffled().forEach {
-                    if (state.getValue(DustFallsBlock.stateFromDirection(it))) {
-                        val pos2 = pos.relative(it)
-                        if (!layer.canSurvive(level, pos2.above())) {
-                            if (getDustHeight(level, pos2) < getDistToFloor(level, pos2))
-                                DustLayerBlock.summonFalling(level, pos, layer)
-                            return
-                        } else {
-                            blockEntity.tryOpenSide(state, it, level.getBlockState(pos2), level, pos, pos2)
-                        }
-                    }
+                DustFallsBlock.getDirList(state).shuffled().forEach {
+                    if (trySummonFallingDust(level, pos, state, layer, it, blockEntity)) return
                 }
             }
         }
 
-        fun getDistToFloor(level: Level, blockPos: BlockPos): Int {
-            val state = level.getBlockState(blockPos)
-            return if (state.isAir || state.`is`(DuskBlocks.DUST_LAYER)) {
-                getDustHeight(level, blockPos.below()) + 1
-            } else {
-                0
+        fun trySummonFallingDust(
+            level: Level,
+            pos: BlockPos,
+            state: BlockState,
+            layerState: BlockState,
+            dir: Direction,
+            be: DustFallsBlockEntity
+        ): Boolean {
+            if (state.getValue(DustFallsBlock.stateFromDirection(dir))) {
+                val pos2 = pos.relative(dir)
+                if (!layerState.canSurvive(level, pos2.above())) {
+                    if (getDustHeight(level, pos2) < getDistToFloor(level, pos2))
+                        DustLayerBlock.summonFalling(level, pos2, layerState)
+                    return true
+                } else {
+                    //be.tryOpenSide(state, dir, level.getBlockState(pos2), level, pos, pos2)
+                    return false
+                }
             }
+            return false
+        }
+
+        fun getDistToFloor(level: Level, blockPos: BlockPos): Int {
+            if (blockPos.y > level.maxBuildHeight) {
+                val state = level.getBlockState(blockPos)
+                if (state.isAir || state.`is`(DuskBlocks.DUST_LAYER)) {
+                    return getDistToFloor(level, blockPos.below()) + 1
+                }
+            }
+            return 0
         }
 
         fun getDustHeight(level: Level, blockPos: BlockPos): Int {
-            val state = level.getBlockState(blockPos)
-            return if (state.isAir) {
-                getDustHeight(level, blockPos.below())
-            } else if (state.`is`(DuskBlocks.DUST_LAYER)) {
-                getDustHeight(level, blockPos.below()) + state.getValue(DustLayerBlock.LAYERS)
-            } else {
-                0
+            if (blockPos.y > level.maxBuildHeight) {
+                val state = level.getBlockState(blockPos)
+                if (state.isAir) {
+                    return getDustHeight(level, blockPos.below())
+                } else if (state.`is`(DuskBlocks.DUST_LAYER)) {
+                    return getDustHeight(level, blockPos.below()) + state.getValue(DustLayerBlock.LAYERS)
+                }
             }
+            return 0
         }
 
         fun particle(level: Level, pos: BlockPos, state: BlockState, direction: Direction, random: RandomSource) {
