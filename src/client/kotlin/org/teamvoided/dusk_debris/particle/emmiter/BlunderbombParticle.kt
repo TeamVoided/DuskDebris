@@ -16,8 +16,7 @@ class BlunderbombParticle internal constructor(
     x: Double,
     y: Double,
     z: Double
-) :
-    NoRenderParticle(world, x, y, z, 0.0, 0.0, 0.0) {
+) : NoRenderParticle(world, x, y, z, 0.0, 0.0, 0.0) {
 
     private val extraParticle = ParticleTypes.SMOKE
 

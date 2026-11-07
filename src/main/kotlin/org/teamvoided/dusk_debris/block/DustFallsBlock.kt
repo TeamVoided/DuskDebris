@@ -5,9 +5,11 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.BlockPos.MutableBlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.MoverType
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
@@ -54,7 +56,6 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
         builder.add(DOWN, NORTH, SOUTH, EAST, WEST, DISTANCE)
     }
 
-
     override fun getStateForPlacement(blockPlaceContext: BlockPlaceContext): BlockState =
         updateDistance(this.defaultBlockState(), blockPlaceContext.level, blockPlaceContext.clickedPos)
 
@@ -69,10 +70,10 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
                 z += it.stepZ
             }
             if (x == 0.0 && z == 0.0) return
-            val vec3 = Vec3(x, 0.0, z).normalize().multiply(mult, mult, mult)
             //entity.hurtMarked = true
             //entity.deltaMovement = entity.deltaMovement.add(vec3)
-            entity.move(MoverType.SELF, vec3)
+            entity.move(MoverType.SELF, Vec3(x, 0.0, z).normalize().multiply(mult, mult, mult))
+            entity.setOnGround(true)
         }
         super.stepOn(level, blockPos, blockState, entity)
     }
@@ -107,7 +108,6 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
             getDirList(state1).shuffled().forEach {
                 if (it != Direction.DOWN && block.horizontalLogic(serverLevel, pos1Above, worldState, it)) return
             }
-
         }
     }
 
@@ -128,14 +128,12 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
                 }
             }
         }
-        return setStateFromList(d, blockState, true).setValue(DISTANCE, i)
+        return setStateFromList(d, blockState).setValue(DISTANCE, i)
     }
 
-    private fun getDistanceAt(worldState: BlockState): Int {
-        return if (worldState.isAir) 0
-        else if (worldState.hasProperty(DISTANCE)) worldState.getValue(DISTANCE)
-        else MAX_DISTANCE
-    }
+    private fun getDistanceAt(worldState: BlockState): Int = if (worldState.isAir) 0
+    else if (worldState.hasProperty(DISTANCE)) worldState.getValue(DISTANCE)
+    else MAX_DISTANCE
 
     override fun getRenderShape(blockState: BlockState): RenderShape = RenderShape.MODEL
     override fun isPathfindable(blockState: BlockState, pathComputationType: PathComputationType): Boolean = false
@@ -198,7 +196,7 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
             return list.toList()
         }
 
-        fun setStateFromList(list: List<Direction>, state: BlockState, result: Boolean): BlockState {
+        fun setStateFromList(list: List<Direction>, state: BlockState): BlockState {
             return state
                 .setValue(DOWN, list.contains(Direction.DOWN))
                 .setValue(NORTH, list.contains(Direction.NORTH))

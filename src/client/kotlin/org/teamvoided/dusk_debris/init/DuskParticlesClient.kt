@@ -61,5 +61,9 @@ object DuskParticlesClient {
         ins.register(DuskParticles.MUSHROOM_LAUNCH, MushroomLaunchParticle::Factory)
         ins.register(DuskParticles.DUST_BUNNY, DustBunnyParticle::Factory)
         ins.register(DuskParticles.SPIRAL, SpiralParticle::Factory)
+
+
+
+        ins.register(DuskParticles.FALLING_DUST, FallingDustParticle::Factory)
     }
 }
