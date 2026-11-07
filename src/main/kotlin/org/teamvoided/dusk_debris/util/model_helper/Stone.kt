@@ -8,6 +8,7 @@ import net.minecraft.data.models.blockstates.VariantProperties
 import net.minecraft.data.models.model.*
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Block
+import org.teamvoided.dusk_debris.block.DustFallsBlock
 import org.teamvoided.dusk_debris.block.DustLayerBlock
 import org.teamvoided.dusk_debris.block.not_blocks.DuskProperties
 import org.teamvoided.dusk_debris.util.block
@@ -27,31 +28,99 @@ fun BlockModelGenerators.registerActive(block: Block, activeSuffix: String = "_a
     )
 }
 
-fun BlockModelGenerators.registerDust(block: Block, layer: Block) {
+fun BlockModelGenerators.registerDust(block: Block, falls: Block, layer: Block) {
     val textureMapping = TextureMapping.cube(block)
     val fullModel = ModelTemplates.CUBE_ALL.create(block, textureMapping, this.modelOutput)
-    this.blockStateOutput
-        .accept(
-            MultiVariantGenerator.multiVariant(layer).with(
-                PropertyDispatch.property(DustLayerBlock.LAYERS).generate { layerCount ->
-                    Variant.variant().with(
-                        VariantProperties.MODEL,
-                        if (layerCount < DustLayerBlock.MAX_LAYERS) {
-                            val suffix = "_height" + layerCount * (16 / DustLayerBlock.MAX_LAYERS)
-                            TexturedModel.createDefault(
-                                { TextureMapping.defaultTexture(block) },
-                                ModelTemplates.create("snow$suffix", TextureSlot.TEXTURE)
-                            ).createWithSuffix(layer, suffix, this.modelOutput)
-                           // layer.model(suffix)
-                        } else fullModel
-                    )
-                }
-            )
+    this.blockStateOutput.accept(
+        MultiVariantGenerator.multiVariant(layer).with(
+            PropertyDispatch.property(DustLayerBlock.LAYERS).generate { layerCount ->
+                Variant.variant().with(
+                    VariantProperties.MODEL,
+                    if (layerCount < DustLayerBlock.MAX_LAYERS) {
+                        val suffix = "_height" + layerCount * (16 / DustLayerBlock.MAX_LAYERS)
+                        TexturedModel.createDefault(
+                            { TextureMapping.defaultTexture(block) },
+                            ModelTemplates.create("snow$suffix", TextureSlot.TEXTURE)
+                        ).createWithSuffix(layer, suffix, this.modelOutput)
+                        // layer.model(suffix)
+                    } else fullModel
+                )
+            }
         )
+    )
     this.delegateItemModel(layer, ModelLocationUtils.getModelLocation(layer, "_height2"))
     this.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(block, fullModel))
+    this.dustFalls(falls)
 }
 
+private fun BlockModelGenerators.dustFalls(falls: Block) {
+    val stillTexture = TextureMapping().put(TextureSlot.ALL, falls.model("_still"))
+    val flowTexture = TextureMapping().put(TextureSlot.ALL, falls.model("_flowing"))
+    val flowHorizTexture = TextureMapping()
+        .put(TextureSlot.END, falls.model("_flowing_horizontal"))
+        .put(TextureSlot.SIDE, falls.model("_flowing"))
+    val flowDiagTexture = TextureMapping()
+        .put(TextureSlot.END, falls.model("_flowing_diagonal"))
+        .put(TextureSlot.SIDE, falls.model("_flowing"))
+    val still = ModelTemplates.CUBE_ALL.create(falls, stillTexture, this.modelOutput)
+    val flow = ModelTemplates.CUBE_ALL.createWithSuffix(falls, "_flowing", flowTexture, this.modelOutput)
+    val flowHoriz =
+        ModelTemplates.CUBE_COLUMN.createWithSuffix(falls, "_flowing_horizontal", flowHorizTexture, this.modelOutput)
+    val flowDiag =
+        ModelTemplates.CUBE_COLUMN.createWithSuffix(falls, "_flowing_diagonal", flowDiagTexture, this.modelOutput)
+
+    this.blockStateOutput.accept(
+        MultiVariantGenerator.multiVariant(falls).with(
+            PropertyDispatch.properties(
+                DustFallsBlock.NORTH,
+                DustFallsBlock.SOUTH,
+                DustFallsBlock.EAST,
+                DustFallsBlock.WEST,
+                DustFallsBlock.DOWN
+            ).generate { north, south, east, west, down ->
+                if ((north && south && east && west) || ((north && south) && (!east && !west)) || ((!north && !south) && (east && west))) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flow)
+                }
+
+                val z = ((east && west) || (!east && !west))
+                if (north && !south && z) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowHoriz)
+                } else if (south && !north && z) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowHoriz)
+                        .with(VariantProperties.Y_ROT, VariantProperties.Rotation.R180)
+                }
+                val x = ((north && south) || (!north && !south))
+                if (east && !west && x) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowHoriz)
+                        .with(VariantProperties.Y_ROT, VariantProperties.Rotation.R90)
+                } else if (west && !east && x) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowHoriz)
+                        .with(VariantProperties.Y_ROT, VariantProperties.Rotation.R270)
+                }
+
+
+                if (north && east && !west && !south) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowDiag)
+                } else if (!north && east && south && !west) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowDiag)
+                        .with(VariantProperties.Y_ROT, VariantProperties.Rotation.R90)
+                } else if (!north && !east && south && west) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowDiag)
+                        .with(VariantProperties.Y_ROT, VariantProperties.Rotation.R180)
+                } else if (north && !east && !south && west) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flowDiag)
+                        .with(VariantProperties.Y_ROT, VariantProperties.Rotation.R270)
+                }
+
+                if (down) {
+                    return@generate Variant.variant().with(VariantProperties.MODEL, flow)
+                }
+
+                return@generate Variant.variant().with(VariantProperties.MODEL, still)
+            }
+        )
+    )
+}
 
 //fun BlockStateModelGenerator.stoneChest(block: Block) {
 //    this.blockStateCollector.accept(

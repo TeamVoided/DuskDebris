@@ -38,7 +38,6 @@ object StoneModelProvider {
 
 
     private fun BlockModelGenerators.dust() {
-        registerDust(DuskBlocks.DUST_BLOCK, DuskBlocks.DUST_LAYER)
-        createTrivialCube(DuskBlocks.DUST_FALLS)
+        registerDust(DuskBlocks.DUST_BLOCK, DuskBlocks.DUST_FALLS, DuskBlocks.DUST_LAYER)
     }
 }

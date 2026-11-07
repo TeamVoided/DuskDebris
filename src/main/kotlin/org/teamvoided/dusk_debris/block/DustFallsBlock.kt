@@ -78,6 +78,16 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
         super.stepOn(level, blockPos, blockState, entity)
     }
 
+    override fun randomTick(
+        blockState: BlockState,
+        serverLevel: ServerLevel,
+        blockPos: BlockPos,
+        randomSource: RandomSource
+    ) {
+
+        super.randomTick(blockState, serverLevel, blockPos, randomSource)
+    }
+
     override fun updateShape(
         blockState: BlockState,
         direction: Direction,

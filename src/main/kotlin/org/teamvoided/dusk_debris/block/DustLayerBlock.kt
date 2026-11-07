@@ -183,8 +183,10 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
                     if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos2Down, state2Down)) return
                 }
             }
-            dirs.forEach { //do horizontal logic
-                if (horizontalLogic(serverLevel, pos1, state1, it)) return
+            if (layers1 > 1) {
+                dirs.forEach { //do horizontal logic
+                    if (horizontalLogic(serverLevel, pos1, state1, it)) return
+                }
             }
         }
     }
@@ -225,7 +227,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         level.scheduleTick(pos2, this, level.random.nextInt(1, DELAY_MOVE))
         if (state1.`is`(this) && state1.getValue(LAYERS) > change) {
             if (state1.getValue(LAYERS) == MAX_LAYERS && level.getBlockState(pos1.above()).`is`(this)) {
-                if (level is Level) removeFromTopLayer(level, pos1, state1, change)
+                if (level is Level) removeFromColumn(level, pos1, state1, change)
             } else {
                 level.setBlock(pos1, state1.setValue(LAYERS, state1.getValue(LAYERS) - change), 3)
             }
@@ -308,12 +310,12 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             } else 0
         }
 
-        fun removeFromTopLayer(level: Level, pos1: BlockPos, state1: BlockState, count: Int) {
+        fun removeFromColumn(level: Level, pos1: BlockPos, state1: BlockState, count: Int) {
             if (state1.block !is DustLayerBlock || count < 1) return
             val pos1Above = pos1.above()
             val state1Above = level.getBlockState(pos1Above)
             if (state1Above.block is DustLayerBlock) {
-                return removeFromTopLayer(level, pos1Above, state1Above, count)
+                return removeFromColumn(level, pos1Above, state1Above, count)
             }
             val layers1 = state1.getValue(LAYERS)
             if (layers1 > count) {
@@ -321,7 +323,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             } else if (layers1 <= count) {
                 level.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
                 if (layers1 < count) {
-                    removeFromTopLayer(
+                    removeFromColumn(
                         level,
                         pos1.below(),
                         level.getBlockState(pos1.below()),
@@ -329,6 +331,21 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
                     )
                 }
             }
+        }
+
+        fun addToColumn(level: Level, pos1: BlockPos, state1: BlockState, count: Int) {
+            if (state1.block !is DustLayerBlock || count < 1) return
+            val layers1 = state1.getValue(LAYERS)
+            if (layers1 != MAX_LAYERS && layers1 + count <= MAX_LAYERS) {
+                level.setBlock(pos1, state1.setValue(LAYERS, layers1 + count), 3)
+                return level.scheduleTick(pos1, state1.block, 1)
+            } else {
+                level.setBlock(pos1, state1.setValue(LAYERS, MAX_LAYERS), 3)
+            }
+            val pos1Above = pos1.above()
+            val state1Above = level.getBlockState(pos1Above)
+            if ((state1.block as DustLayerBlock).canReplace(state1, level, pos1Above))
+                addToColumn(level, pos1Above, state1Above, count)
         }
     }
 }

@@ -10,14 +10,18 @@ import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload.Companion.STATUE_SCREEN
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload.Companion.BIOME_TINT_SCREEN
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload.Companion.DISPLAY_SCREEN
+import org.teamvoided.dusk_debris.net.s2c.FallingDustEmitterPayload
 import org.teamvoided.dusk_debris.net.s2c.RaccoonBrainInfoPayload
 import org.teamvoided.dusk_debris.screen.BiomeSelectScreen
 import org.teamvoided.dusk_debris.screen.DisplayBEScreen
 import org.teamvoided.dusk_debris.screen.StatueScreen
+import org.teamvoided.dusk_debris.util.Utils.vec3d
 
 object DuskNetClient {
 
     fun init() {
+        ClientPlayNetworking.registerGlobalReceiver(FallingDustEmitterPayload.ID, ::spawnFallingDustEmitterParticle)
+
         ClientPlayNetworking.registerGlobalReceiver(BlockEntityScreenPayload.ID, ::openBEScreen)
         ClientPlayNetworking.registerGlobalReceiver(RaccoonBrainInfoPayload.ID, ::updateRaccoonData)
     }
@@ -34,7 +38,7 @@ object DuskNetClient {
         }
         val screen = when (payload.id) {
             STATUE_SCREEN -> StatueScreen(be as? StatueBlockEntity ?: return)
-            DISPLAY_SCREEN-> DisplayBEScreen(be as? DisplayBlockEntity ?: return)
+            DISPLAY_SCREEN -> DisplayBEScreen(be as? DisplayBlockEntity ?: return)
             BIOME_TINT_SCREEN -> BiomeSelectScreen(be as? BiomeTintBlockEntity ?: return)
             else -> {
                 log.error("No screen found for packet with id: {}", payload.id)
@@ -54,6 +58,12 @@ object DuskNetClient {
 
         racoon.displayBrainData.clear()
         racoon.displayBrainData.addAll(payload.text)
+    }
+
+    fun spawnFallingDustEmitterParticle(payload: FallingDustEmitterPayload, ctx: ClientPlayNetworking.Context) {
+        val level = ctx.player().level() ?: return
+        val pos = payload.pos.vec3d()
+        level.addParticle(payload.options, pos.x, pos.y, pos.z, 0.0, 0.0, 0.0)
     }
 
 }

@@ -12,12 +12,15 @@ import org.teamvoided.dusk_debris.net.c2s.BiomeTintUpdatePayload
 import org.teamvoided.dusk_debris.net.c2s.DisplayUpdatePayload
 import org.teamvoided.dusk_debris.net.c2s.StatueUpdatePayload
 import org.teamvoided.dusk_debris.net.s2c.BlockEntityScreenPayload
+import org.teamvoided.dusk_debris.net.s2c.FallingDustEmitterPayload
 import org.teamvoided.dusk_debris.net.s2c.RaccoonBrainInfoPayload
 import kotlin.jvm.optionals.getOrNull
 
 object DuskNet {
 
     fun init() {
+        PayloadTypeRegistry.playS2C().register(FallingDustEmitterPayload.ID, FallingDustEmitterPayload.CODEC)
+
         PayloadTypeRegistry.playS2C().register(BlockEntityScreenPayload.ID, BlockEntityScreenPayload.CODEC)
         PayloadTypeRegistry.playS2C().register(RaccoonBrainInfoPayload.ID, RaccoonBrainInfoPayload.CODEC)
 

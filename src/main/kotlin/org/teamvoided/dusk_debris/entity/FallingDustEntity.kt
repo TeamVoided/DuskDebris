@@ -94,20 +94,20 @@ class FallingDustEntity(entityType: EntityType<out FallingDustEntity>, level: Le
                     discard()
                 }
 
-                TODO("dust clouds")
+                //TODO("dust clouds")
             }
             val worldstate = level().getBlockState(blockPosition())
             if (worldstate.`is`(block)) {
-                placeDustColumn(
-                    level(),
-                    blockPosition(),
-                    layerCount + worldstate.getValue(DustLayerBlock.LAYERS)
-                )
+                DustLayerBlock.addToColumn(level(), blockPosition(), worldstate, layerCount)
+                discard()
                 return level().scheduleTick(blockPosition(), block, 1)
-            } else if (block.canSurviveAndReplace(blockState, level(), blockPosition())) {
-                placeDustColumn(level(), blockPosition(), layerCount)
+            }
+            if (block.canSurviveAndReplace(blockState, level(), blockPosition())) {
+                DustLayerBlock.addToColumn(level(), blockPosition(), blockState, layerCount)
+                discard()
                 return level().scheduleTick(blockPosition(), block, 1)
-            } else if ((tickCount % 40 == 0 &&
+            }
+            if ((tickCount % 40 == 0 &&
                         (prevY <= level().minBuildHeight || prevY > level().maxBuildHeight)
                         || tickCount > 600)
             ) {
@@ -115,17 +115,6 @@ class FallingDustEntity(entityType: EntityType<out FallingDustEntity>, level: Le
             }
         } else {
             return drop(blockState, position())
-        }
-    }
-
-    private fun placeDustColumn(level: Level, pos: BlockPos, layers: Int) {
-        if (layers > DustLayerBlock.MAX_LAYERS) {
-            setBlock(pos, blockState.setValue(DustLayerBlock.LAYERS, DustLayerBlock.MAX_LAYERS))
-            if (!blockState.canSurvive(level, pos.above(2))) {
-                placeDustColumn(level, pos, layers - DustLayerBlock.MAX_LAYERS)
-            }
-        } else {
-            setBlock(pos, blockState.setValue(DustLayerBlock.LAYERS, layers))
         }
     }
 
@@ -209,9 +198,9 @@ class FallingDustEntity(entityType: EntityType<out FallingDustEntity>, level: Le
     }
 
     override fun refreshDimensions() {
-        val z = x
+        val x = x
         val y = y
-        val x = z
+        val z = z
         super.refreshDimensions()
         setPos(x, y, z)
     }
