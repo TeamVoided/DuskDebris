@@ -73,20 +73,20 @@ class FallingDustEntity(entityType: EntityType<out FallingDustEntity>, level: Le
 
 
     override fun tick() {
+        move(MoverType.SELF, deltaMovement)
+        applyGravity()
         if (!level().isClientSide) {
-            applyGravity()
-            move(MoverType.SELF, deltaMovement)
             if (prevY != blockPosition().y) {
                 prevY = blockPosition().y
-                doTryPlaceLogic()
+                doTryPlaceLogic(level() as ServerLevel)
             }
         }
     }
 
-    private fun doTryPlaceLogic() {
+    private fun doTryPlaceLogic(level: ServerLevel) {
         val block = blockState.block
         if (block is DustLayerBlock) {
-            if (!level().getFluidState(blockPosition()).isEmpty) {
+            if (!level.getFluidState(blockPosition()).isEmpty) {
                 return if (layerCount > DustLayerBlock.MAX_LAYERS) {
                     layerCount -= DustLayerBlock.MAX_LAYERS
                     setPos(position().add(0.0, 1.0, 0.0))
@@ -96,54 +96,23 @@ class FallingDustEntity(entityType: EntityType<out FallingDustEntity>, level: Le
 
                 //TODO("dust clouds")
             }
-            val worldstate = level().getBlockState(blockPosition())
-            if (worldstate.`is`(block)) {
-                DustLayerBlock.addToColumn(level(), blockPosition(), worldstate, layerCount)
-                discard()
-                return level().scheduleTick(blockPosition(), block, 1)
+            if (level.getBlockState(blockPosition()).`is`(block)) {
+                DustLayerBlock.addToColumn(level, blockPosition(), block, layerCount)
+                return discard()
             }
-            if (block.canSurviveAndReplace(blockState, level(), blockPosition())) {
-                DustLayerBlock.addToColumn(level(), blockPosition(), blockState, layerCount)
-                discard()
-                return level().scheduleTick(blockPosition(), block, 1)
+            if (block.canSurviveAndReplace(blockState, level, blockPosition())) {
+                level.setBlock(blockPosition(), blockState.setValue(DustLayerBlock.LAYERS, 1), 3)
+                layerCount--
+                DustLayerBlock.addToColumn(level, blockPosition(), block, layerCount)
+                return discard()
             }
-            if ((tickCount % 40 == 0 &&
-                        (prevY <= level().minBuildHeight || prevY > level().maxBuildHeight)
-                        || tickCount > 600)
+            if (tickCount % 40 == 0 &&
+                (prevY <= level.minBuildHeight || prevY > level.maxBuildHeight || tickCount > 600)
             ) {
                 return drop(blockState, position())
             }
         } else {
             return drop(blockState, position())
-        }
-    }
-
-    fun setBlock(blockPos: BlockPos, blockState: BlockState) {
-        if (level().setBlock(blockPos, blockState, 3)) {
-            (level() as ServerLevel)
-                .chunkSource
-                .chunkMap
-                .broadcast(this, ClientboundBlockUpdatePacket(blockPos, level().getBlockState(blockPos)))
-            discard()
-
-            if (blockData != null && blockState.hasBlockEntity()) {
-                val blockEntity = level().getBlockEntity(blockPos)
-                if (blockEntity != null) {
-                    val compoundTag = blockEntity.saveWithoutMetadata(level().registryAccess())
-
-                    for (string in blockData!!.allKeys) {
-                        compoundTag.put(string, blockData!!.get(string)!!.copy())
-                    }
-
-                    try {
-                        blockEntity.loadWithComponents(compoundTag, level().registryAccess())
-                    } catch (var15: Exception) {
-                        LOGGER.error("Failed to load block entity from falling block", var15 as Throwable)
-                    }
-
-                    blockEntity.setChanged()
-                }
-            }
         }
     }
 

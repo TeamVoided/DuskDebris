@@ -23,7 +23,9 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.teamvoided.dusk_debris.entity.FallingDustEntity
+import org.teamvoided.dusk_debris.init.DuskBlocks
 import org.teamvoided.dusk_debris.util.symmetricalBoxY
+import org.teamvoided.voidlib.helpers.block.asBlock
 import kotlin.math.min
 
 class DustLayerBlock(properties: Properties) : Block(properties) {
@@ -116,6 +118,52 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         super.setPlacedBy(level, blockPos, blockState, livingEntity, itemStack)
     }
 
+    override fun tick(
+        state1: BlockState,
+        serverLevel: ServerLevel,
+        pos1: BlockPos,
+        randomSource: RandomSource
+    ) {
+        val pos1Down = pos1.below()
+        val state1Down = serverLevel.getBlockState(pos1Down)
+        if (state1Down.`is`(this)) { //this is for when it is on a large column, it will just schedule tick below instead
+            var tickBelowAndStop = true
+            for (dir in Direction.Plane.HORIZONTAL) {
+                if (canSurviveAndReplace(state1, serverLevel, pos1.relative(dir))) {
+                    tickBelowAndStop = false
+                    break
+                }
+            }
+            if (tickBelowAndStop) return serverLevel.scheduleTick(pos1Down, this, randomSource.nextInt(1, DELAY_MOVE))
+        }
+        if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos1Down, state1Down)) return //does down logic
+        val layers1 = state1.getValue(LAYERS)
+        if (layers1 > 1 || !state1Down.isFaceSturdy(serverLevel, pos1Down, Direction.UP)) {
+            val dirs = Direction.Plane.HORIZONTAL.shuffled()
+            dirs.forEach { //do horizontally below logic
+                val pos2 = pos1.relative(it)
+                val state2 = serverLevel.getBlockState(pos2)
+                if (!state2.isFaceSturdy(serverLevel, pos2, it.opposite) &&
+                    !state2.isFaceSturdy(serverLevel, pos2, Direction.DOWN)
+                ) {
+                    val pos2Down = pos2.below()
+                    val state2Down = serverLevel.getBlockState(pos2Down)
+                    if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos2Down, state2Down)) return
+                }
+            }
+            if (layers1 > 1) {
+                dirs.forEach { //do horizontal logic
+                    if (horizontalLogic(serverLevel, pos1, state1, it)) return
+                }
+            }
+        }
+
+        //down logic
+        //should do horizontal logic or tell below to do so instead
+        //horizontal below logic
+        //horizontal logic
+    }
+
     fun compareAndMoveOrFall(
         serverLevel: ServerLevel,
         pos1: BlockPos, state1: BlockState,
@@ -137,58 +185,13 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
                     summonFalling(serverLevel, pos2, state1)
                     return false
                 } else {
-                    serverLevel.setBlock(pos1, state1.setValue(LAYERS, layers1 - 1), 3)
+                    removeFromColumn(serverLevel, pos1, 1)
                     summonFalling(serverLevel, pos2, state1.setValue(LAYERS, 1))
                     return false
                 }
             }
         }
         return true
-    }
-
-    override fun tick(
-        state1: BlockState,
-        serverLevel: ServerLevel,
-        pos1: BlockPos,
-        randomSource: RandomSource
-    ) {
-        val pos1Down = pos1.below()
-        val state1Down = serverLevel.getBlockState(pos1Down)
-        if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos1Down, state1Down)) return //do below logic
-        if (state1Down.`is`(this)) {
-            var canContinue = false
-            for (dir in Direction.Plane.HORIZONTAL) {
-                val pos2 = pos1.relative(dir)
-                val state2 = serverLevel.getBlockState(pos2)
-                if ((state2.`is`(this) && state2.getValue(LAYERS) != MAX_LAYERS) ||
-                    serverLevel.getBlockState(pos2.below()).`is`(this)
-                ) {
-                    canContinue = true
-                    break
-                }
-            }
-            if (!canContinue) return
-        }
-        val layers1 = state1.getValue(LAYERS)
-        if (layers1 > 1 || !state1Down.isFaceSturdy(serverLevel, pos1Down, Direction.UP)) {
-            val dirs = Direction.Plane.HORIZONTAL.shuffled()
-            dirs.forEach { //do horizontally below logic
-                val pos2 = pos1.relative(it)
-                val state2 = serverLevel.getBlockState(pos2)
-                if (!state2.isFaceSturdy(serverLevel, pos2, it.opposite) &&
-                    !state2.isFaceSturdy(serverLevel, pos2, Direction.DOWN)
-                ) {
-                    val pos2Down = pos2.below()
-                    val state2Down = serverLevel.getBlockState(pos2Down)
-                    if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos2Down, state2Down)) return
-                }
-            }
-            if (layers1 > 1) {
-                dirs.forEach { //do horizontal logic
-                    if (horizontalLogic(serverLevel, pos1, state1, it)) return
-                }
-            }
-        }
     }
 
     fun horizontalLogic(serverLevel: ServerLevel, pos1: BlockPos, state1: BlockState, direction: Direction): Boolean {
@@ -215,41 +218,36 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
     }
 
     fun moveLayer(
-        level: LevelAccessor,
+        serverLevel: ServerLevel,
         pos1: BlockPos, state1: BlockState,
         pos2: BlockPos, state2: BlockState,
         change: Int
     ) {
-        if (!state2.`is`(this)) {
-            return moveLayer(level, pos1, state1, pos2, change)
-        }
-        level.setBlock(pos2, state2.setValue(LAYERS, state2.getValue(LAYERS) + change), 3)
-        level.scheduleTick(pos2, this, level.random.nextInt(1, DELAY_MOVE))
-        if (state1.`is`(this) && state1.getValue(LAYERS) > change) {
-            if (state1.getValue(LAYERS) == MAX_LAYERS && level.getBlockState(pos1.above()).`is`(this)) {
-                if (level is Level) removeFromColumn(level, pos1, state1, change)
-            } else {
-                level.setBlock(pos1, state1.setValue(LAYERS, state1.getValue(LAYERS) - change), 3)
-            }
-            level.scheduleTick(pos1, this, level.random.nextInt(1, DELAY_MOVE))
+        //THAT BLOCK LOGIC
+        if (state2.fluidState.isEmpty) {
+            addToColumn(serverLevel, pos2, state1.block as DustLayerBlock, change)
         } else {
-            level.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
+            //TODO("Dust clouds")
         }
-    }
 
-    fun moveLayer(
-        level: LevelAccessor,
-        pos1: BlockPos, state1: BlockState,
-        pos2: BlockPos,
-        change: Int
-    ) {
-        val layer1 = state1.getValue(LAYERS)
-        val state10 = if (layer1 > change) {
-            state1.setValue(LAYERS, state1.getValue(LAYERS) - change)
-        } else {
-            Blocks.AIR.defaultBlockState()
-        }
-        moveLayer(level, pos1, state10, pos2, state1.setValue(LAYERS, change), 0)
+        //THIS BLOCK LOGIC
+        removeFromColumn(serverLevel, pos1, change)
+
+
+        //THAT BLOCK LOGIC
+        //  if other state has no fluids
+        //      if other state is not this
+        //          restart function, but with different values and matching block types
+        //      set the other pos and schedule tick it
+        //THIS BLOCK LOGIC
+        //  removes from column
+
+        //  if this states layers are greater than change
+        //      if this has max layers and the block above is same block
+        //          run remove from column at this pos
+        //      else remove the layers from
+        //  else
+        //      remove this block
     }
 
     override fun canBeReplaced(blockState: BlockState, blockPlaceContext: BlockPlaceContext): Boolean {
@@ -290,17 +288,17 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             layerShape(8)
         )
 
-        fun summonFalling(level: Level, blockPos: BlockPos, blockState: BlockState) {
-            if (level.getBlockState(blockPos.below()).canBeReplaced() && blockPos.y >= level.minBuildHeight) {
-                val entity = FallingDustEntity.fall(level, blockPos, blockState)
-            }
-        }
-
         private fun layerShape(layer: Int): VoxelShape = symmetricalBoxY(0.0, 0.0, layer * (16.0 / MAX_LAYERS))
         fun getCollumLayerCount(level: Level, pos: BlockPos): Int {
             return level.getBlockState(pos).getValue(LAYERS) +
                     getLayerCountDir(level, pos, Direction.DOWN) +
                     getLayerCountDir(level, pos, Direction.UP)
+        }
+
+        fun summonFalling(level: ServerLevel, blockPos: BlockPos, blockState: BlockState) {
+            if (level.getBlockState(blockPos.below()).canBeReplaced() && blockPos.y >= level.minBuildHeight) {
+                val entity = FallingDustEntity.fall(level, blockPos, blockState)
+            }
         }
 
         fun getLayerCountDir(level: Level, pos: BlockPos, dir: Direction): Int {
@@ -310,42 +308,51 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             } else 0
         }
 
-        fun removeFromColumn(level: Level, pos1: BlockPos, state1: BlockState, count: Int) {
-            if (state1.block !is DustLayerBlock || count < 1) return
+        fun removeFromColumn(level: ServerLevel, pos1: BlockPos, count: Int) {
+            val worldState = level.getBlockState(pos1)
+            if (worldState.block !is DustLayerBlock || count < 1) return
             val pos1Above = pos1.above()
             val state1Above = level.getBlockState(pos1Above)
             if (state1Above.block is DustLayerBlock) {
-                return removeFromColumn(level, pos1Above, state1Above, count)
+                return removeFromColumn(level, pos1Above, count)
             }
-            val layers1 = state1.getValue(LAYERS)
+            val layers1 = worldState.getValue(LAYERS)
             if (layers1 > count) {
-                level.setBlock(pos1, state1.setValue(LAYERS, layers1 - count), 3)
+                level.setBlock(pos1, worldState.setValue(LAYERS, layers1 - count), 3)
+                return level.scheduleTick(pos1, worldState.block, 1)
             } else if (layers1 <= count) {
                 level.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
                 if (layers1 < count) {
                     removeFromColumn(
                         level,
                         pos1.below(),
-                        level.getBlockState(pos1.below()),
                         count - layers1
                     )
                 }
+                return
             }
         }
 
-        fun addToColumn(level: Level, pos1: BlockPos, state1: BlockState, count: Int) {
-            if (state1.block !is DustLayerBlock || count < 1) return
-            val layers1 = state1.getValue(LAYERS)
-            if (layers1 != MAX_LAYERS && layers1 + count <= MAX_LAYERS) {
-                level.setBlock(pos1, state1.setValue(LAYERS, layers1 + count), 3)
-                return level.scheduleTick(pos1, state1.block, 1)
+        fun addToColumn(level: ServerLevel, pos1: BlockPos, block: DustLayerBlock, count: Int) {
+            if (count < 1) return
+            val state1 = level.getBlockState(pos1)
+            val layers1 = if (state1.`is`(block)) {
+                state1.getValue(LAYERS)
+            } else if (block.canReplace(state1, level, pos1)) {
+                0
             } else {
-                level.setBlock(pos1, state1.setValue(LAYERS, MAX_LAYERS), 3)
+                return
             }
-            val pos1Above = pos1.above()
-            val state1Above = level.getBlockState(pos1Above)
-            if ((state1.block as DustLayerBlock).canReplace(state1, level, pos1Above))
-                addToColumn(level, pos1Above, state1Above, count)
+
+            if (layers1 + count > MAX_LAYERS) {
+                level.setBlock(pos1, state1.setValue(LAYERS, MAX_LAYERS), 3)
+                return addToColumn(level, pos1.above(), block, count - layers1)
+            } else if (layers1 == 0) {
+                level.setBlock(pos1, block.defaultBlockState().setValue(LAYERS, count), 3)
+            } else {
+                level.setBlock(pos1, state1.setValue(LAYERS, count + layers1), 3)
+            }
+            return level.scheduleTick(pos1, block, 1)
         }
     }
 }

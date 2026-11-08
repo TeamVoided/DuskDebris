@@ -111,14 +111,6 @@ class DustFallsBlock(properties: Properties) : BaseEntityBlock(properties) {
         randomSource: RandomSource
     ) {
         serverLevel.setBlock(pos1, updateDistance(state1, serverLevel, pos1), 3)
-        val pos1Above = pos1.above()
-        val worldState = serverLevel.getBlockState(pos1Above)
-        if (worldState.block is DustLayerBlock) {
-            val block = (worldState.block as DustLayerBlock)
-            getDirList(state1).shuffled().forEach {
-                if (it != Direction.DOWN && block.horizontalLogic(serverLevel, pos1Above, worldState, it)) return
-            }
-        }
     }
 
     private fun updateDistance(blockState: BlockState, levelAccessor: LevelAccessor, blockPos: BlockPos): BlockState {

@@ -11,12 +11,12 @@ import net.minecraft.util.FastColor
 import java.util.function.Function
 
 //TODO("ender put on the maid outfit and get in here")
-class ColorOption private constructor(private val type: ParticleType<ColorOption>, val color: Int) : ParticleOptions {
-    override fun getType(): ParticleType<ColorOption> = this.type
-    val red: Float = FastColor.ARGB32.red(this.color).toFloat() / 255f
-    val green: Float = FastColor.ARGB32.green(this.color).toFloat() / 255f
-    val blue: Float = FastColor.ARGB32.blue(this.color).toFloat() / 255f
-    val alpha: Float = FastColor.ARGB32.alpha(this.color).toFloat() / 255f
+open class ColorOption(private val type: ParticleType<out ColorOption>, val color: Int) : ParticleOptions {
+    override fun getType(): ParticleType<out ColorOption> = type
+    open val red: Float = FastColor.ARGB32.red(color) / 255f
+    open val green: Float = FastColor.ARGB32.green(color) / 255f
+    open val blue: Float = FastColor.ARGB32.blue(color) / 255f
+    open val alpha: Float = FastColor.ARGB32.alpha(color) / 255f
 
     companion object {
         fun codec(particleType: ParticleType<ColorOption>): MapCodec<ColorOption> {
