@@ -23,9 +23,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.teamvoided.dusk_debris.entity.FallingDustEntity
-import org.teamvoided.dusk_debris.init.DuskBlocks
 import org.teamvoided.dusk_debris.util.symmetricalBoxY
-import org.teamvoided.voidlib.helpers.block.asBlock
 import kotlin.math.min
 
 class DustLayerBlock(properties: Properties) : Block(properties) {
@@ -103,7 +101,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         pos1: BlockPos,
         pos2: BlockPos
     ): BlockState {
-        levelAccessor.scheduleTick(pos1, this, DELAY_MOVE)
+        levelAccessor.tryScheduleTick(pos1, this, DELAY_MOVE)
         return super.updateShape(state1, dir, state2, levelAccessor, pos1, pos2)
     }
 
@@ -114,7 +112,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
         livingEntity: LivingEntity?,
         itemStack: ItemStack
     ) {
-        level.scheduleTick(blockPos, this, DELAY_MOVE)
+        level.tryScheduleTick(blockPos, this, DELAY_MOVE)
         super.setPlacedBy(level, blockPos, blockState, livingEntity, itemStack)
     }
 
@@ -134,7 +132,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
                     break
                 }
             }
-            if (tickBelowAndStop) return serverLevel.scheduleTick(pos1Down, this, randomSource.nextInt(1, DELAY_MOVE))
+            if (tickBelowAndStop) return serverLevel.tryScheduleTick(pos1Down, this, randomSource.nextInt(1, DELAY_MOVE))
         }
         if (!compareAndMoveOrFall(serverLevel, pos1, state1, pos1Down, state1Down)) return //does down logic
         val layers1 = state1.getValue(LAYERS)
@@ -207,7 +205,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
                 return true
             } else if (layers2 - 1 > layers1) {
                 //because that means something wrong
-                serverLevel.scheduleTick(pos2, state2.block, DELAY_MOVE)
+                serverLevel.tryScheduleTick(pos2, this, DELAY_MOVE)
                 return true
             }
         } else if (canSurviveAndReplace(state1, serverLevel, pos2)) {
@@ -288,6 +286,12 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             layerShape(8)
         )
 
+        private fun LevelAccessor.tryScheduleTick( pos: BlockPos, block: DustLayerBlock, delay: Int) {
+            if (!this.blockTicks.willTickThisTick(pos, block)) {
+                this.scheduleTick(pos, block, delay)
+            }
+        }
+
         private fun layerShape(layer: Int): VoxelShape = symmetricalBoxY(0.0, 0.0, layer * (16.0 / MAX_LAYERS))
         fun getCollumLayerCount(level: Level, pos: BlockPos): Int {
             return level.getBlockState(pos).getValue(LAYERS) +
@@ -319,7 +323,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             val layers1 = worldState.getValue(LAYERS)
             if (layers1 > count) {
                 level.setBlock(pos1, worldState.setValue(LAYERS, layers1 - count), 3)
-                return level.scheduleTick(pos1, worldState.block, 1)
+                return level.tryScheduleTick(pos1, worldState.block as DustLayerBlock, 1)
             } else if (layers1 <= count) {
                 level.setBlock(pos1, Blocks.AIR.defaultBlockState(), 3)
                 if (layers1 < count) {
@@ -352,7 +356,7 @@ class DustLayerBlock(properties: Properties) : Block(properties) {
             } else {
                 level.setBlock(pos1, state1.setValue(LAYERS, count + layers1), 3)
             }
-            return level.scheduleTick(pos1, block, 1)
+            return level.tryScheduleTick(pos1, block, 1)
         }
     }
 }

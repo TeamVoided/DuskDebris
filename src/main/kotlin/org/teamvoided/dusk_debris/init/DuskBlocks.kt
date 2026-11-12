@@ -96,6 +96,9 @@ object DuskBlocks {
         )
     )
 
+    val REDSTONE_AIR = register("redstone_air", RedstoneAirBlock(ofFullCopy(AIR)))
+    val REDSTONE_CAMPFIRE =
+        register("redstone_campfire", RedstoneCampfireBlock(ofFullCopy(CAMPFIRE).lightLevel(litBlockEmission(7))))
 
     val EXHAUST_BLOCK = register("exhaust_block", ExhaustBlock(ofFullCopy(DEEPSLATE).randomTicks()))
 
