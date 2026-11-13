@@ -22,12 +22,13 @@ import net.minecraft.world.level.material.FluidState
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
+import org.teamvoided.dusk_debris.block.RedstoneTorchLikeBlock.Companion.LIT
 import org.teamvoided.dusk_debris.init.DuskBlocks
 import org.teamvoided.dusk_debris.util.symmetricalBoxY
 import org.teamvoided.dusks_and_dungeons.block.HorizontalWaterloggedBlock
 
 class RedstoneCampfireBlock(properties: Properties) :
-    HorizontalWaterloggedBlock(properties) {
+    HorizontalWaterloggedBlock(properties), RedstoneTorchLikeBlock {
 
     init {
         this.registerDefaultState(
@@ -56,11 +57,7 @@ class RedstoneCampfireBlock(properties: Properties) :
         blockPos: BlockPos,
         blockState2: BlockState,
         bl: Boolean
-    ) {
-        for (direction in Direction.entries) {
-            level.updateNeighborsAt(blockPos.relative(direction), this)
-        }
-    }
+    ) = super<RedstoneTorchLikeBlock>.onPlace(blockState, level, blockPos, blockState2, bl)
 
     override fun onRemove(
         blockState: BlockState,
@@ -68,13 +65,7 @@ class RedstoneCampfireBlock(properties: Properties) :
         blockPos: BlockPos,
         blockState2: BlockState,
         bl: Boolean
-    ) {
-        if (!bl) {
-            for (direction in Direction.entries) {
-                level.updateNeighborsAt(blockPos.relative(direction), this)
-            }
-        }
-    }
+    ) = super<RedstoneTorchLikeBlock>.onRemove(blockState, level, blockPos, blockState2, bl)
 
     override fun updateShape(
         state: BlockState,
@@ -98,11 +89,7 @@ class RedstoneCampfireBlock(properties: Properties) :
         blockPos2: BlockPos,
         bl: Boolean
     ) {
-        if (blockState.getValue(LIT) == this.hasNeighborSignal(level, blockPos, blockState) &&
-            !level.blockTicks.willTickThisTick(blockPos, this)
-        ) {
-            level.scheduleTick(blockPos, this, 2)
-        }
+        super<RedstoneTorchLikeBlock>.neighborChanged(blockState, level, blockPos, block, blockPos2, bl)
         val stateAbove = level.getBlockState(blockPos.above())
         if (blockState.getValue(LIT) && stateAbove.block !is RedstoneAirBlock && stateAbove.isAir) {
             level.setBlock(
@@ -118,18 +105,8 @@ class RedstoneCampfireBlock(properties: Properties) :
         blockState: BlockState,
         serverLevel: ServerLevel,
         blockPos: BlockPos,
-        randomSource: RandomSource?
-    ) {
-        val bl = this.hasNeighborSignal(serverLevel, blockPos, blockState)
-
-        if (blockState.getValue(LIT)) {
-            if (bl) {
-                serverLevel.setBlock(blockPos, blockState.setValue(LIT, false), 3)
-            }
-        } else if (!bl) {
-            serverLevel.setBlock(blockPos, blockState.setValue(LIT, true), 3)
-        }
-    }
+        randomSource: RandomSource
+    ) = super<RedstoneTorchLikeBlock>.tick(blockState, serverLevel, blockPos, randomSource)
 
     override fun getShape(
         blockState: BlockState,
@@ -147,20 +124,12 @@ class RedstoneCampfireBlock(properties: Properties) :
                     blockPos.z + 0.5,
                     SoundEvents.CAMPFIRE_CRACKLE,
                     SoundSource.BLOCKS,
-                    0.5f + randomSource.nextFloat(),
+                    randomSource.nextFloat() + 0.5f,
                     randomSource.nextFloat() * 0.7f + 0.6f,
                     false
                 )
             }
-            level.addParticle(
-                DustParticleOptions.REDSTONE,
-                blockPos.x + 0.5 + (randomSource.nextDouble() - 0.5) * 0.5,
-                blockPos.y + 0.7 + (randomSource.nextDouble() - 0.5) * 0.5,
-                blockPos.z + 0.5 + (randomSource.nextDouble() - 0.5) * 0.5,
-                0.0,
-                0.0,
-                0.0
-            )
+            redstoneParticles(blockState, level, blockPos, randomSource, 0.5, 0.6, 0.6)
         }
     }
 
@@ -171,8 +140,7 @@ class RedstoneCampfireBlock(properties: Properties) :
         fluidState: FluidState
     ): Boolean {
         if (!blockState.getValue(BlockStateProperties.WATERLOGGED) && fluidState.type == Fluids.WATER) {
-            val bl = blockState.getValue(LIT)
-            if (bl) {
+            if (blockState.getValue(LIT)) {
                 if (!levelAccessor.isClientSide) {
                     levelAccessor.playSound(
                         null,
@@ -196,32 +164,30 @@ class RedstoneCampfireBlock(properties: Properties) :
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        super.createBlockStateDefinition(builder)
-        builder.add(LIT, SIGNAL_FIRE)
+        super<HorizontalWaterloggedBlock>.createBlockStateDefinition(builder)
+        super<RedstoneTorchLikeBlock>.createBlockStateDefinition(builder)
+        builder.add(SIGNAL_FIRE)
     }
 
+    override fun canSetLitOn(state: BlockState): Boolean = !state.getValue(WATERLOGGED)
     override fun isSignalSource(blockState: BlockState): Boolean = true
     override fun getSignal(
         blockState: BlockState,
         blockGetter: BlockGetter,
         blockPos: BlockPos,
         direction: Direction
-    ): Int = if (blockState.getValue(LIT) && Direction.UP != direction) 15 else 0
+    ): Int = super<RedstoneTorchLikeBlock>.getSignal(blockState, blockGetter, blockPos, direction)
 
     override fun getDirectSignal(
         blockState: BlockState,
         blockGetter: BlockGetter,
         blockPos: BlockPos,
         direction: Direction
-    ): Int = if (direction == Direction.DOWN) blockState.getSignal(blockGetter, blockPos, direction) else 0
+    ): Int = super<RedstoneTorchLikeBlock>.getDirectSignal(blockState, blockGetter, blockPos, direction)
 
-    fun hasNeighborSignal(level: Level, blockPos: BlockPos, blockState: BlockState): Boolean {
-        return level.hasSignal(blockPos.below(), Direction.DOWN)
-    }
 
     companion object {
         private val SHAPE: VoxelShape = symmetricalBoxY(0.0, 0.0, 7.0)
-        val LIT: BooleanProperty = BlockStateProperties.LIT
         val SIGNAL_FIRE: BooleanProperty = BlockStateProperties.SIGNAL_FIRE
     }
 }
