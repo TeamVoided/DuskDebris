@@ -19,6 +19,9 @@ import java.util.*
 /** TOGGLE POWER SOURCE CLASS
 //      Useful for repetitive redstone torch clones like redstone lanterns, campfires, and candles
 //     override the sourceDirection function to add directional properties (like wall torch)
+ //
+ //     if you override and change a functions return value (if you do not just return super<RedstoneTorchLikeBlock>)
+ //     put it at the top of the other regular return functions.
  **/
 
 interface RedstoneTorchLikeBlock {
@@ -26,7 +29,7 @@ interface RedstoneTorchLikeBlock {
         builder.add(LIT)
     }
 
-    fun redstoneParticles(
+    fun defaultRedstoneParticles(
         blockState: BlockState,
         level: Level,
         blockPos: BlockPos,

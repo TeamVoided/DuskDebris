@@ -2,7 +2,6 @@ package org.teamvoided.dusk_debris.block
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.particles.DustParticleOptions
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
@@ -135,7 +134,7 @@ class RedstoneCampfireBlock(properties: Properties) :
                     false
                 )
             }
-            redstoneParticles(blockState, level, blockPos, randomSource, 0.5, 0.6, 0.6)
+            defaultRedstoneParticles(blockState, level, blockPos, randomSource, 0.5, 0.6, 0.6)
         }
     }
 

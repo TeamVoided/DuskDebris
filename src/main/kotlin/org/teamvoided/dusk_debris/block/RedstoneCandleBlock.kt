@@ -78,6 +78,21 @@ class RedstoneCandleBlock(properties: Properties) : CandleBlock(properties), Red
         blockHitResult: BlockHitResult
     ): ItemInteractionResult = ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 
+    override fun canBeLit(blockState: BlockState): Boolean = false //flint and steel
+
+    override fun getSignal(
+        blockState: BlockState,
+        blockGetter: BlockGetter,
+        blockPos: BlockPos,
+        direction: Direction
+    ): Int {
+        return if (blockState.getValue(LIT) && sourceDirection(blockState).opposite != direction)
+            CandleBlock.LIGHT_EMISSION.applyAsInt(blockState)
+        else 0
+    }
+
+    override fun canSetLitOn(state: BlockState): Boolean = !state.getValue(WATERLOGGED)
+
     override fun onPlace(
         blockState: BlockState,
         level: Level,
@@ -120,26 +135,11 @@ class RedstoneCandleBlock(properties: Properties) : CandleBlock(properties), Red
         direction: Direction
     ): Int = super<RedstoneTorchLikeBlock>.getDirectSignal(blockState, blockGetter, blockPos, direction)
 
-    override fun getSignal(
-        blockState: BlockState,
-        blockGetter: BlockGetter,
-        blockPos: BlockPos,
-        direction: Direction
-    ): Int {
-        return if (blockState.getValue(LIT) && sourceDirection(blockState).opposite != direction)
-            LIGHT_EMISSION.applyAsInt(blockState)
-        else 0
-    }
-
-    override fun canSetLitOn(state: BlockState): Boolean = !state.getValue(WATERLOGGED)
-
-    override fun canBeLit(blockState: BlockState): Boolean = false
-
     companion object {
-        const val REDSTONE_CANDLE_LIGHT: Int = 2
-        const val REDSTONE_CANDLE_POWER: Int = 3
-        val REDSTONE_LIGHT_EMISSION: ToIntFunction<BlockState> = ToIntFunction { blockState: BlockState ->
-            if (blockState.getValue(LIT)) REDSTONE_CANDLE_LIGHT * blockState.getValue(CANDLES) else 0
+        const val LIGHT: Int = 2
+        const val POWER: Int = 3
+        val LIGHT_EMISSION: ToIntFunction<BlockState> = ToIntFunction { blockState: BlockState ->
+            if (blockState.getValue(LIT)) LIGHT * blockState.getValue(CANDLES) else 0
         }
     }
 }

@@ -82,6 +82,17 @@ class RedstoneCandleCakeBlock(block: Block, properties: Properties) :
         blockHitResult: BlockHitResult
     ): ItemInteractionResult = ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 
+    override fun canBeLit(blockState: BlockState): Boolean = false
+
+    override fun getSignal(
+        blockState: BlockState,
+        blockGetter: BlockGetter,
+        blockPos: BlockPos,
+        direction: Direction
+    ): Int {
+        return if (blockState.getValue(LIT) && sourceDirection(blockState).opposite != direction) RedstoneCandleBlock.POWER else 0
+    }
+
     override fun onPlace(
         blockState: BlockState,
         level: Level,
@@ -123,15 +134,4 @@ class RedstoneCandleCakeBlock(block: Block, properties: Properties) :
         blockPos: BlockPos,
         direction: Direction
     ): Int = super<RedstoneTorchLikeBlock>.getDirectSignal(blockState, blockGetter, blockPos, direction)
-
-    override fun getSignal(
-        blockState: BlockState,
-        blockGetter: BlockGetter,
-        blockPos: BlockPos,
-        direction: Direction
-    ): Int {
-        return if (blockState.getValue(LIT) && sourceDirection(blockState).opposite != direction) RedstoneCandleBlock.REDSTONE_CANDLE_POWER else 0
-    }
-
-    override fun canBeLit(blockState: BlockState): Boolean = false
 }

@@ -103,13 +103,13 @@ object DuskBlocks {
         register("redstone_pumpkin", RedstonePumpkinBlock(ofFullCopy(JACK_O_LANTERN).lightLevel(litBlockEmission(7))))
     val REDSTONE_CANDLE = register(
         "redstone_candle",
-        RedstoneCandleBlock(ofFullCopy(CANDLE).lightLevel(RedstoneCandleBlock.REDSTONE_LIGHT_EMISSION))
+        RedstoneCandleBlock(ofFullCopy(CANDLE).lightLevel(RedstoneCandleBlock.LIGHT_EMISSION))
     )
     val REDSTONE_CANDLE_CAKE = registerNoItem(
         "redstone_candle_cake",
         RedstoneCandleCakeBlock(
             REDSTONE_CANDLE,
-            ofFullCopy(CANDLE_CAKE).lightLevel(litBlockEmission(RedstoneCandleBlock.REDSTONE_CANDLE_LIGHT))
+            ofFullCopy(CANDLE_CAKE).lightLevel(litBlockEmission(RedstoneCandleBlock.LIGHT))
         )
     )
 
