@@ -53,24 +53,37 @@ object NoiseSettingsGenerator {
         )
     }
 
-
+    private const val BLACKSTONE_HEIGHT = 64
+    private const val NETHERACK_HEIGHT = 256
+    private const val ABOVE_BEDROCK_HEIGHT = 128
+    private const val LAVA_SEA_LEVEL = 32
+    private const val MIN_HEIGHT = -BLACKSTONE_HEIGHT
+    private const val NETHER_HEIGHT = BLACKSTONE_HEIGHT + NETHERACK_HEIGHT + ABOVE_BEDROCK_HEIGHT
     private fun BootstrapContext<NoiseGeneratorSettings>.createNetherSettings(
         amplified: Boolean = false,
         largeBiomes: Boolean = false
     ): NoiseGeneratorSettings {
         return NoiseGeneratorSettings(
-            NoiseSettings.create(0, 256, 1, 2),
+            NoiseSettings.create(MIN_HEIGHT, NETHER_HEIGHT, 1, 2),
             Blocks.NETHERRACK.defaultBlockState(),
             Blocks.LAVA.defaultBlockState(),
             this.createNether(amplified, largeBiomes),
             getNetherRules(),
             listOf(),
-            32,
+            LAVA_SEA_LEVEL,
             false,
             true,
             false,
             false
         )
+    }
+
+    fun allTrue(ruleSource: RuleSource, vararg conditionSource: ConditionSource): RuleSource {
+        var retur = ruleSource
+        conditionSource.forEach {
+            retur = ifTrue(it, retur)
+        }
+        return retur
     }
 
 
@@ -96,6 +109,10 @@ object NoiseSettingsGenerator {
         val basaltDelta = isBiome(Biomes.BASALT_DELTAS, DuskBiomes.BASALT_DELTAS)
         val soulValley = isBiome(Biomes.SOUL_SAND_VALLEY, DuskBiomes.SOUL_SAND_VALLEY)
 
+        val aboveLava = waterBlockCheck(-1, 0)//32
+        val lavaDepth1 = waterBlockCheck(0, 0)//31
+        val lavaDepth2 = waterBlockCheck(1, 0)//30
+
         val aboveY31 = yBlockCheck(VerticalAnchor.absolute(31), 0)
         val aboveY32 = yBlockCheck(VerticalAnchor.absolute(32), 0)
         val aboveY30AndDepth = yStartCheck(VerticalAnchor.absolute(30), 0)
@@ -106,12 +123,11 @@ object NoiseSettingsGenerator {
         val gravelLayer = noiseCondition(Noises.GRAVEL_LAYER, -0.012)
         val patch = noiseCondition(Noises.PATCH, -0.012)
         val netherStateSelector = noiseCondition(Noises.NETHER_STATE_SELECTOR, 0.0)
-        val atSeaLevel = ifTrue(
+        val atSeaLevel = allTrue(
+            gravel,
             patch,
-            ifTrue(
-                aboveY30AndDepth,
-                ifTrue(belowY35AndDepth, gravel)
-            )
+            aboveY30AndDepth,
+            belowY35AndDepth
         )
 
         val basaltDeltasSurface = ifTrue(
@@ -140,14 +156,18 @@ object NoiseSettingsGenerator {
                         ifTrue(
                             netherStateSelector,
                             soulSand
-                        ), soulSoil
+                        ),
+                        soulSoil
                     )
                 ),
                 ifTrue(
                     UNDER_FLOOR,
                     sequence(
                         atSeaLevel,
-                        ifTrue(netherStateSelector, soulSand),
+                        ifTrue(
+                            netherStateSelector,
+                            soulSand
+                        ),
                         soulSoil
                     )
                 )
@@ -156,9 +176,10 @@ object NoiseSettingsGenerator {
         val netherwartForestSurface = ifTrue(
             ON_FLOOR,
             sequence(
-                ifTrue(
+                allTrue(
+                    lava,
                     not(aboveY32),
-                    ifTrue(hole, lava)
+                    hole
                 ),
                 wartForest(warpedForest, warpedNylium, warpedWartBlock),
                 wartForest(crimsonForest, crimsonNylium, netherWartBlock)
@@ -172,44 +193,34 @@ object NoiseSettingsGenerator {
                     ifTrue(
                         soulSandLayer,
                         sequence(
-                            ifTrue(
+                            allTrue(
+                                soulSand,
                                 not(hole),
-                                ifTrue(
-                                    aboveY30AndDepth,
-                                    ifTrue(
-                                        belowY35AndDepth,
-                                        soulSand
-                                    )
-                                )
-                            ), netherrack
+                                aboveY30AndDepth,
+                                belowY35AndDepth,
+                            ),
+                            netherrack
                         )
                     )
                 ),
-                ifTrue(
-                    ON_FLOOR,
-                    ifTrue(
-                        aboveY31,
+                allTrue(
+                    sequence(
                         ifTrue(
-                            belowY35AndDepth,
-                            ifTrue(
-                                gravelLayer,
-                                sequence(
-                                    ifTrue(
-                                        aboveY32,
-                                        gravel
-                                    ),
-                                    ifTrue(
-                                        not(hole),
-                                        gravel
-                                    )
-                                )
-                            )
+                            aboveY32,
+                            gravel
+                        ),
+                        ifTrue(
+                            not(hole),
+                            gravel
                         )
-                    )
+                    ),
+                    ON_FLOOR,
+                    aboveY31,
+                    belowY35AndDepth,
+                    gravelLayer
                 )
             )
         )
-
         return sequence(
             ifTrue(
                 verticalGradient(
@@ -224,6 +235,15 @@ object NoiseSettingsGenerator {
                         "bedrock_roof",
                         VerticalAnchor.belowTop(5),
                         VerticalAnchor.top()
+                    )
+                ), bedrock
+            ),
+            ifTrue(
+                not(
+                    verticalGradient(
+                        "blackstone",
+                        VerticalAnchor.absolute(0),
+                        VerticalAnchor.absolute(8),
                     )
                 ), bedrock
             ),
@@ -242,21 +262,17 @@ object NoiseSettingsGenerator {
     ): RuleSource {
         val netherrackNoise = noiseCondition(Noises.NETHERRACK, 0.54)
         val netherWartCondition = noiseCondition(Noises.NETHER_WART, (1.17 / 2))
-        return ifTrue(
-            biome,
-            ifTrue(
-                not(netherrackNoise),
+        return allTrue(
+            sequence(
                 ifTrue(
-                    yBlockCheck(VerticalAnchor.absolute(31), 0),
-                    sequence(
-                        ifTrue(
-                            netherWartCondition,
-                            wartBlock
-                        ),
-                        nyliumBlock
-                    )
-                )
-            )
+                    netherWartCondition,
+                    wartBlock
+                ),
+                nyliumBlock
+            ),
+            biome,
+            not(netherrackNoise),
+            yBlockCheck(VerticalAnchor.absolute(31), 0),
         )
     }
 

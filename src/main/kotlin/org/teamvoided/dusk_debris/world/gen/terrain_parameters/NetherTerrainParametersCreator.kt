@@ -134,13 +134,13 @@ object NetherTerrainParametersCreator {
     }
 
     fun nFloor(inputY: Int): Float {
-        val output = ((inputY - SEA_OFFSET).toFloat() / HIGHEST_LEVEL)
+        val output = ((inputY - SEA_OFFSET) / HIGHEST_LEVEL.toFloat())
 //        val output = ((inputY - SEA_OFFSET - 1f) / HIGHEST_LEVEL)
         return output//(round(10000f * output)) / 10000f
     }
 
     fun nCeil(inputY: Int): Float {
-        val output = ((inputY - ROOF_OFFSET).toFloat() / HIGHEST_LEVEL)
+        val output = ((inputY - ROOF_OFFSET) / HIGHEST_LEVEL.toFloat())
         return output
     }
 }

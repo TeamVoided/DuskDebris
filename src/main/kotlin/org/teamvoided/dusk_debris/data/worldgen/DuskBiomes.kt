@@ -11,16 +11,27 @@ object DuskBiomes {
     val BOREAL_VALLEY = create("boreal_valley")
     val FOG_CANYON = create("fog_canyon")
 
-    val NETHER_TEST = create("nether_test")
-    val NETHER_WASTES = create("nether_wastes")
-    val CRIMSON_FOREST = create("crimson_forest")
-    val CRIMSON_WASTES = create("crimson_wastes")
-    val WARPED_FOREST = create("warped_forest")
-    val WARPED_WASTES = create("warped_wastes")
-    val BASALT_DELTAS = create("basalt_delta")
-    val SOUL_SAND_VALLEY = create("soul_sand_valley")
+
+
+
+    val NETHER_TEST = nether("nether_test")
+
+    val NETHER_WASTES = nether("nether_wastes")
+
+    val CRIMSON_FOREST = nether("crimson_forest")
+    val CRIMSON_WASTES = nether("crimson_wastes")
+
+    val WARPED_FOREST = nether("warped_forest")
+    val WARPED_WASTES = nether("warped_wastes")
+
+    val BASALT_DELTAS = nether("basalt_delta")
+
+    val SOUL_SAND_VALLEY = nether("soul_sand_valley")
+
+
 
     fun init() {}
 
+    private fun nether(id: String) = create("nether/$id")
     private fun create(id: String): ResourceKey<Biome> = ResourceKey.create(Registries.BIOME, id(id))
 }
