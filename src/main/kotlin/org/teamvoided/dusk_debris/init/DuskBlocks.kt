@@ -96,15 +96,28 @@ object DuskBlocks {
         )
     )
 
-    val REDSTONE_AIR = register("redstone_air", RedstoneAirBlock(ofFullCopy(AIR)))
+    val REDSTONE_AIR = registerNoItem("redstone_air", RedstoneAirBlock(ofFullCopy(AIR)))
     val REDSTONE_CAMPFIRE =
         register("redstone_campfire", RedstoneCampfireBlock(ofFullCopy(CAMPFIRE).lightLevel(litBlockEmission(7))))
+    val REDSTONE_PUMPKIN =
+        register("redstone_pumpkin", RedstonePumpkinBlock(ofFullCopy(JACK_O_LANTERN).lightLevel(litBlockEmission(7))))
+    val REDSTONE_CANDLE = register(
+        "redstone_candle",
+        RedstoneCandleBlock(ofFullCopy(CANDLE).lightLevel(RedstoneCandleBlock.REDSTONE_LIGHT_EMISSION))
+    )
+    val REDSTONE_CANDLE_CAKE = registerNoItem(
+        "redstone_candle_cake",
+        RedstoneCandleCakeBlock(
+            REDSTONE_CANDLE,
+            ofFullCopy(CANDLE_CAKE).lightLevel(litBlockEmission(RedstoneCandleBlock.REDSTONE_CANDLE_LIGHT))
+        )
+    )
 
     val EXHAUST_BLOCK = register("exhaust_block", ExhaustBlock(ofFullCopy(DEEPSLATE).randomTicks()))
 
     val BRONZE_BLOCK = register(
         "bronze_block", Block(
-            Properties.of().mapColor(MapColor.COLOR_BROWN).requiresCorrectToolForDrops().strength(3.0F, 6.0F)
+            Properties.of().mapColor(MapColor.COLOR_BROWN).requiresCorrectToolForDrops().strength(3F, 6F)
                 .sound(SoundType.COPPER)
         )
     )

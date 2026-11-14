@@ -40,6 +40,12 @@ class RedstoneCampfireBlock(properties: Properties) :
         )
     }
 
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
+        super<HorizontalWaterloggedBlock>.createBlockStateDefinition(builder)
+        super<RedstoneTorchLikeBlock>.createBlockStateDefinition(builder)
+        builder.add(SIGNAL_FIRE)
+    }
+
     override fun getStateForPlacement(ctx: BlockPlaceContext): BlockState {
         val levelAccessor: LevelAccessor = ctx.level
         val blockPos = ctx.clickedPos
@@ -161,12 +167,6 @@ class RedstoneCampfireBlock(properties: Properties) :
         } else {
             return false
         }
-    }
-
-    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        super<HorizontalWaterloggedBlock>.createBlockStateDefinition(builder)
-        super<RedstoneTorchLikeBlock>.createBlockStateDefinition(builder)
-        builder.add(SIGNAL_FIRE)
     }
 
     override fun canSetLitOn(state: BlockState): Boolean = !state.getValue(WATERLOGGED)

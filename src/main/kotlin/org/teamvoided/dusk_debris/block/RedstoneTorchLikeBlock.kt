@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.BooleanProperty
-import net.minecraft.world.phys.Vec3
 import java.util.*
 
 /** TOGGLE POWER SOURCE CLASS
@@ -25,6 +24,27 @@ import java.util.*
 interface RedstoneTorchLikeBlock {
     fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(LIT)
+    }
+
+    fun redstoneParticles(
+        blockState: BlockState,
+        level: Level,
+        blockPos: BlockPos,
+        randomSource: RandomSource,
+        offsetXZ: Double = 0.5,
+        offsetY: Double = 0.7,
+        sizeXZ: Double = 0.2,
+        sizeY: Double = sizeXZ
+    ) {
+        if (blockState.getValue(LIT)) {
+            level.addParticle(
+                DustParticleOptions.REDSTONE,
+                blockPos.x + offsetXZ + (randomSource.nextDouble() - 0.5) * sizeXZ,
+                blockPos.y + offsetY + (randomSource.nextDouble() - 0.5) * sizeY,
+                blockPos.z + offsetXZ + (randomSource.nextDouble() - 0.5) * sizeXZ,
+                0.0, 0.0, 0.0
+            )
+        }
     }
 
     fun onPlace(
@@ -54,12 +74,6 @@ interface RedstoneTorchLikeBlock {
     }
 
 
-    //internal function
-    fun hasNeighborSignal(level: Level, blockPos: BlockPos, blockState: BlockState): Boolean {
-        val dir = sourceDirection(blockState)
-        return level.hasSignal(blockPos.relative(dir), dir)
-    }
-
     fun tick(
         blockState: BlockState,
         serverLevel: ServerLevel,
@@ -78,7 +92,7 @@ interface RedstoneTorchLikeBlock {
                 serverLevel.setBlock(blockPos, blockState.setValue(LIT, false), 3)
                 if (isToggledTooFrequently(serverLevel, blockPos, true)) {
                     serverLevel.levelEvent(LevelEvent.REDSTONE_TORCH_BURNOUT, blockPos, 0)
-                    serverLevel.scheduleTick(blockPos, serverLevel.getBlockState(blockPos).block, RESTART_DELAY)
+                    serverLevel.scheduleTick(blockPos, serverLevel.getBlockState(blockPos).block, BURNOUT_TIME)
                 }
             }
         } else if (!bl && canSetLitOn(blockState) && !isToggledTooFrequently(serverLevel, blockPos, false)) {
@@ -101,16 +115,19 @@ interface RedstoneTorchLikeBlock {
         }
     }
 
+    //internal function
+    fun hasNeighborSignal(level: Level, blockPos: BlockPos, blockState: BlockState): Boolean {
+        val dir = sourceDirection(blockState)
+        return level.hasSignal(blockPos.relative(dir), dir)
+    }
+
     fun isSignalSource(blockState: BlockState): Boolean = true
     fun getDirectSignal(
         blockState: BlockState,
         blockGetter: BlockGetter,
         blockPos: BlockPos,
         direction: Direction
-    ): Int {
-        return if (direction == sourceDirection(blockState)) blockState.getSignal(blockGetter, blockPos, direction)
-        else 0
-    }
+    ): Int = if (direction == sourceDirection(blockState)) blockState.getSignal(blockGetter, blockPos, direction) else 0
 
     fun getSignal(
         blockState: BlockState,
@@ -118,28 +135,6 @@ interface RedstoneTorchLikeBlock {
         blockPos: BlockPos,
         direction: Direction
     ): Int = if (blockState.getValue(LIT) && sourceDirection(blockState).opposite != direction) 15 else 0
-
-
-    fun redstoneParticles(
-        blockState: BlockState,
-        level: Level,
-        blockPos: BlockPos,
-        randomSource: RandomSource,
-        offsetXZ: Double = 0.5,
-        offsetY: Double = 0.7,
-        sizeXZ: Double = 0.2,
-        sizeY: Double = sizeXZ
-    ) {
-        if (blockState.getValue(LIT)) {
-            level.addParticle(
-                DustParticleOptions.REDSTONE,
-                blockPos.x + offsetXZ + (randomSource.nextDouble() - 0.5) * sizeXZ,
-                blockPos.y + offsetY + (randomSource.nextDouble() - 0.5) * sizeY,
-                blockPos.z + offsetXZ + (randomSource.nextDouble() - 0.5) * sizeXZ,
-                0.0, 0.0, 0.0
-            )
-        }
-    }
 
     //Default is down, change for lantern
     fun sourceDirection(state: BlockState): Direction = Direction.DOWN
@@ -151,8 +146,8 @@ interface RedstoneTorchLikeBlock {
         private val RECENT_TOGGLES: MutableMap<BlockGetter, MutableList<Toggle>> = WeakHashMap()
         const val RECENT_TOGGLE_TIMER: Long = 60L
         const val MAX_RECENT_TOGGLES: Int = 8
-        const val RESTART_DELAY: Int = 160
-        private const val TOGGLE_DELAY = 2
+        const val BURNOUT_TIME: Int = 160
+        private const val TOGGLE_DELAY: Int = 2
 
         private fun isToggledTooFrequently(level: Level, blockPos: BlockPos, toggledOn: Boolean): Boolean {
             val list = RECENT_TOGGLES.computeIfAbsent(level) { Lists.newArrayList<Toggle>() }

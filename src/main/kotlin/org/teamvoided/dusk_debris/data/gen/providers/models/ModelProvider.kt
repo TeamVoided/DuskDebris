@@ -12,6 +12,7 @@ import org.teamvoided.dusk_debris.DuskDebris.id
 import org.teamvoided.dusk_debris.DuskDebris.mc
 import org.teamvoided.dusk_debris.block.DuskBlockFamilies
 import org.teamvoided.dusk_debris.block.DuskBlockLists
+import org.teamvoided.dusk_debris.data.gen.providers.models.ColorfulModelProvider.generateColorfulModels
 import org.teamvoided.dusk_debris.data.gen.providers.models.MinecraftModelProvider.generateAlternativeMinecraftModels
 import org.teamvoided.dusk_debris.data.gen.providers.models.StoneModelProvider.generateStoneModels
 import org.teamvoided.dusk_debris.data.gen.providers.models.WoodModelProvider.generateWoodModels
@@ -51,6 +52,7 @@ class ModelProvider(o: FabricDataOutput) : FabricModelProvider(o) {
         }
         gen.generateWoodModels()
         gen.generateStoneModels()
+        gen.generateColorfulModels()
         gen.fogCanyonModels()
 
         DuskItemLists.SPAWN_EGGS_ITEM_LIST.forEach {
@@ -66,7 +68,6 @@ class ModelProvider(o: FabricDataOutput) : FabricModelProvider(o) {
             gen.gunpowderBarrelBlock(it)
         }
 
-        gen.carpetStairs(DuskBlocks.RED_CARPET_STAIRS, Blocks.RED_WOOL)
 
 
         gen.createSimpleFlatItemModel(DuskItems.MACE_BLAZE)
