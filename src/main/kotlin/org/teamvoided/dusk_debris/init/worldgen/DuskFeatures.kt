@@ -30,6 +30,7 @@ object DuskFeatures {
     val SURFACE_SPIRE = register("surface_spire", SurfaceFormationFeature(SurfaceFormationFeatureConfig.CODEC))
 
     val NOISE_SURFACE = register("noise_surface", NoiseSurfaceFeature(NoiseSurfaceFeatureConfig.CODEC))
+    val HUGE_FUNGUS = register("huge_fungus", HugeFungusFeature(HugeFungusConfig.CODEC))
 
     val ROCK = register("rock", RockFeature(NoneFeatureConfiguration.CODEC))
     val HUGE_GOLDEN_MUSHROOM = register("huge_golden_mushroom", HugeGoldMushroomFeature(MushroomFeatureConfig.CODEC))

@@ -18,6 +18,13 @@ object DuskBlockTags {
     val NETHERSHROOM_GROWABLE_ON = create("nethershroom_growable_on")
     val NETHERSHROOM_REPLACEABLE = create("nethershroom_replaceable")
     val NETHERSHROOM_IGNORE = create("nethershroom_ignore")
+
+    val HUGE_FUNGUS_PLANTABLE_ON = nether("huge_fungus/plants_on")
+    val HUGE_FUNGUS_STOPS = nether("huge_fungus/stops")
+    val HUGE_FUNGUS_STOPS_WITH_WARTS = nether("huge_fungus/stops_with_warts")
+    val HUGE_FUNGUS_STEM_REPLACEABLE = nether("huge_fungus/stem_replaceable")
+
+
     val GUNPOWDER_CONNECTS_TO = create("gunpowder_connects_to")
 
     val WIND_IGNORE = create("wind_ignore")
@@ -43,6 +50,7 @@ object DuskBlockTags {
     val GROUND_AND_REPLACEABLE = create("ground_and_replaceable")
 
 
+    fun nether(id: String): TagKey<Block> = create("nether/$id")
     fun create(id: String): TagKey<Block> = TagKey.create(Registries.BLOCK, DuskDebris.id(id))
     fun create(modId: String, path: String): TagKey<Block> = TagKey.create(
         Registries.BLOCK,

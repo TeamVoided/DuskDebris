@@ -24,6 +24,7 @@ object PlacedFeatureCreator {
 
         val configuredFeatureProvider = c.lookup(Registries.CONFIGURED_FEATURE)
         c.netherPlacedFeatureCreators()
+        c.register(DuskPlacedFeatures.EMPTY, DuskConfiguredFeatures.EMPTY)
 
         c.register(
             DuskPlacedFeatures.OAK_CHECHED,
@@ -121,14 +122,10 @@ object PlacedFeatureCreator {
 
     fun BootstrapContext<PlacedFeature>.register(
         registryKey: ResourceKey<PlacedFeature>,
-        configuredFeature: Holder<ConfiguredFeature<*, *>>,
-        vararg placementModifiers: PlacementModifier
-    ): Any = this.register(registryKey, PlacedFeature(configuredFeature, placementModifiers.toList()))
-
-    fun BootstrapContext<PlacedFeature>.register(
-        registryKey: ResourceKey<PlacedFeature>,
-        configuredFeature: Holder<ConfiguredFeature<*, *>>,
+        configuredFeature: ResourceKey<ConfiguredFeature<*, *>>,
         placementModifiers: List<PlacementModifier>
-    ): Any = this.register(registryKey, PlacedFeature(configuredFeature, placementModifiers))
-
+    ): Any {
+        val cf = this.lookup(Registries.CONFIGURED_FEATURE)
+        return this.register(registryKey, PlacedFeature(cf.getOrThrow(configuredFeature), placementModifiers))
+    }
 }

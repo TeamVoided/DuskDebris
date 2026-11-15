@@ -7,6 +7,7 @@ import org.teamvoided.dusk_debris.DuskDebris.id
 
 @Suppress("MemberVisibilityCanBePrivate")
 object DuskPlacedFeatures {
+    val EMPTY = create("no_op")
 
     val OAK_CHECHED = create("tree/oak_checked")
 
@@ -17,15 +18,25 @@ object DuskPlacedFeatures {
     val TREES_SWAMP_EXTRA = create("swamp/trees_swamp_extra")
 
 
-    val HUGE_BLUE_NETHERSHROOM = create("nether/huge_blue_nethershroom")
-    val WARPED_BLUE_NETHERSHROOM_PATCH = create("nether/warped_blue_nethershroom_patch")
-    val BLUE_NETHERSHROOM_PATCH = create("nether/blue_nethershroom_patch")
+    val HUGE_CRIMSON_FUNGUS_VINES = nether("huge_fungus/crimson_vine")
+    val HUGE_CRIMSON_FUNGUS_0 = nether("huge_fungus/crimson_0")
+    val HUGE_CRIMSON_FUNGUS_1 = nether("huge_fungus/crimson_1")
+    val HUGE_CRIMSON_FUNGUS_2 = nether("huge_fungus/crimson_2")
+    val HUGE_WARPED_FUNGUS_0 = nether("huge_fungus/warped_0")
+    val HUGE_WARPED_FUNGUS_1 = nether("huge_fungus/warped_1")
+    val HUGE_WARPED_FUNGUS_2 = nether("huge_fungus/warped_2")
+    val CRIMSON_FOREST_FUNGI = nether("vegetation/crimson_forest_huge_fungi")
+    val WARPED_FOREST_FUNGI = nether("vegetation/warped_forest_huge_fungi")
 
-    val HUGE_PURPLE_NETHERSHROOM = create("nether/huge_purple_nethershroom")
-    val CRIMSON_PURPLE_NETHERSHROOM_PATCH = create("nether/crimson_purple_nethershroom_patch")
-    val PURPLE_NETHERSHROOM_PATCH = create("nether/purple_nethershroom_patch")
+    val HUGE_BLUE_NETHERSHROOM = nether("huge_blue_nethershroom")
+    val WARPED_BLUE_NETHERSHROOM_PATCH = nether("warped_blue_nethershroom_patch")
+    val BLUE_NETHERSHROOM_PATCH = nether("blue_nethershroom_patch")
 
-    val BLACKSTONE_STRIPS = create("nether/blackstone_strips")
+    val HUGE_PURPLE_NETHERSHROOM = nether("huge_purple_nethershroom")
+    val CRIMSON_PURPLE_NETHERSHROOM_PATCH = nether("crimson_purple_nethershroom_patch")
+    val PURPLE_NETHERSHROOM_PATCH = nether("purple_nethershroom_patch")
+
+    val BLACKSTONE_STRIPS = nether("blackstone_strips")
 
 
     val TORUS = create("torus")
@@ -38,6 +49,7 @@ object DuskPlacedFeatures {
 
     val BOREAL_VALLEY_VEGETATION = create("boreal_valley/boreal_valley_vegetation")
 
+    private fun nether(id: String) = create("nether/$id")
     private fun create(id: String): ResourceKey<PlacedFeature> =
         ResourceKey.create(Registries.PLACED_FEATURE, id(id))
 }

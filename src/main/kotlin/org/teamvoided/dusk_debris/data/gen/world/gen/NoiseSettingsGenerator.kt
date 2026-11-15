@@ -53,24 +53,24 @@ object NoiseSettingsGenerator {
         )
     }
 
-    private const val BLACKSTONE_HEIGHT = 64
-    private const val NETHERACK_HEIGHT = 256
-    private const val ABOVE_BEDROCK_HEIGHT = 128
-    private const val LAVA_SEA_LEVEL = 32
-    private const val MIN_HEIGHT = -BLACKSTONE_HEIGHT
-    private const val NETHER_HEIGHT = BLACKSTONE_HEIGHT + NETHERACK_HEIGHT + ABOVE_BEDROCK_HEIGHT
+    const val NETHER_BLACKSTONE_HEIGHT = 64
+    const val NETHER_NETHERACK_HEIGHT = 256
+    const val NETHER_ABOVE_BEDROCK_HEIGHT = 128
+    const val NETHER_SEA_LEVEL = 32
+    const val NETHER_MIN_HEIGHT = -NETHER_BLACKSTONE_HEIGHT
+    const val NETHER_HEIGHT = NETHER_BLACKSTONE_HEIGHT + NETHER_NETHERACK_HEIGHT + NETHER_ABOVE_BEDROCK_HEIGHT
     private fun BootstrapContext<NoiseGeneratorSettings>.createNetherSettings(
         amplified: Boolean = false,
         largeBiomes: Boolean = false
     ): NoiseGeneratorSettings {
         return NoiseGeneratorSettings(
-            NoiseSettings.create(MIN_HEIGHT, NETHER_HEIGHT, 1, 2),
+            NoiseSettings.create(NETHER_MIN_HEIGHT, NETHER_HEIGHT, 1, 2),
             Blocks.NETHERRACK.defaultBlockState(),
             Blocks.LAVA.defaultBlockState(),
             this.createNether(amplified, largeBiomes),
             getNetherRules(),
             listOf(),
-            LAVA_SEA_LEVEL,
+            NETHER_SEA_LEVEL,
             false,
             true,
             false,
@@ -176,11 +176,11 @@ object NoiseSettingsGenerator {
         val netherwartForestSurface = ifTrue(
             ON_FLOOR,
             sequence(
-                allTrue(
-                    lava,
-                    not(aboveY32),
-                    hole
-                ),
+                //allTrue( //placed lava at sea level surface
+                //    lava,
+                //    not(aboveY32),
+                //    hole
+                //),
                 wartForest(warpedForest, warpedNylium, warpedWartBlock),
                 wartForest(crimsonForest, crimsonNylium, netherWartBlock)
             )
@@ -221,37 +221,40 @@ object NoiseSettingsGenerator {
                 )
             )
         )
-        return sequence(
-            ifTrue(
+        val bedrockFloor =ifTrue(
+            verticalGradient(
+                "bedrock_floor",
+                VerticalAnchor.bottom(),
+                VerticalAnchor.aboveBottom(5)
+            ), bedrock
+        )
+        val bedrockRoof = ifTrue(
+            not(
                 verticalGradient(
-                    "bedrock_floor",
-                    VerticalAnchor.bottom(),
-                    VerticalAnchor.aboveBottom(5)
-                ), bedrock
-            ),
-            ifTrue(
-                not(
-                    verticalGradient(
-                        "bedrock_roof",
-                        VerticalAnchor.belowTop(5),
-                        VerticalAnchor.top()
-                    )
-                ), bedrock
-            ),
-            ifTrue(
-                not(
-                    verticalGradient(
-                        "blackstone",
-                        VerticalAnchor.absolute(0),
-                        VerticalAnchor.absolute(8),
-                    )
-                ), bedrock
-            ),
+                    "bedrock_roof",
+                    VerticalAnchor.belowTop(5),
+                    VerticalAnchor.top()
+                )
+            ), bedrock
+        )
+        val blackstoneLayer = ifTrue(
+            not(
+                verticalGradient(
+                    "blackstone",
+                    VerticalAnchor.absolute(0),
+                    VerticalAnchor.absolute(8),
+                )
+            ), blackstone
+        )
+        return sequence(
+            bedrockFloor,
+            bedrockRoof,
             ifTrue(aboveY5BelowTop, netherrack),
             basaltDeltasSurface,
             soulValleySurface,
             netherwartForestSurface,
-            netherWastesSurface
+            netherWastesSurface,
+            blackstoneLayer
         )
     }
 
@@ -276,7 +279,5 @@ object NoiseSettingsGenerator {
         )
     }
 
-    private fun block(block: Block): RuleSource {
-        return state(block.defaultBlockState())
-    }
+    private fun block(block: Block): RuleSource = state(block.defaultBlockState())
 }

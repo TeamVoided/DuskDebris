@@ -48,6 +48,7 @@ object ConfiguredFeatureCreator {
         c.netherConfiguredFeatureCreators()
         c.swampConfiguredFeatureCreators()
         c.testConfiguredFeatureCreators()
+        c.registerConfiguredFeature(DuskConfiguredFeatures.EMPTY, Feature.NO_OP)
 
         c.registerConfiguredFeature(
             DuskConfiguredFeatures.HUGE_GOLD_MUSHROOM,
@@ -119,12 +120,16 @@ object ConfiguredFeatureCreator {
         return listOf(
             AttachedToTrunkTreeDecorator(
                 probability,
-                BlockStateProvider.simple(block.defaultBlockState().setValue(BlockStateProperties.AXIS, Direction.Axis.Z)),
+                BlockStateProvider.simple(
+                    block.defaultBlockState().setValue(BlockStateProperties.AXIS, Direction.Axis.Z)
+                ),
                 listOf(Direction.NORTH, Direction.SOUTH)
             ),
             AttachedToTrunkTreeDecorator(
                 probability,
-                BlockStateProvider.simple(block.defaultBlockState().setValue(BlockStateProperties.AXIS, Direction.Axis.X)),
+                BlockStateProvider.simple(
+                    block.defaultBlockState().setValue(BlockStateProperties.AXIS, Direction.Axis.X)
+                ),
                 listOf(Direction.EAST, Direction.WEST)
             )
         )

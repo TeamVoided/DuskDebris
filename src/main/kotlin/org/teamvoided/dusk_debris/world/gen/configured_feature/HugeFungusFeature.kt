@@ -8,6 +8,7 @@ import net.minecraft.tags.BlockTags
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.WorldGenLevel
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.ChunkGenerator
 import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext
@@ -23,14 +24,10 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
         val chunkGenerator = featurePlaceContext.chunkGenerator()
         val config = featurePlaceContext.config()
 
-        //var height = Mth.nextInt(randomSource, 4, 13)
-        //if (randomSource.nextInt(12) == 0) {
-        //    height *= 2
-        //}
         val height = config.stemHeight.sample(randomSource)
         if (cancelBecauseHeight(worldGenLevel, config, origin, height)) return false
 
-        val width = config.stemWidth.sample(randomSource)
+        val width = config.stemRadius.sample(randomSource)
         //if (cancelBecauseBase(worldGenLevel, config, origin, width)) return false
 
         worldGenLevel.setBlock(origin, Blocks.AIR.defaultBlockState(), 4)
@@ -59,14 +56,17 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
     //    origin: BlockPos,
     //    width: Int
     //): Boolean {
-    //    val mutableBlockPos = MutableBlockPos()
+    //    val mutableBlockPos = MutableBlockPos().setWithOffset(origin, 0, -1, 0)
+    //    if (width == 0) return !level.getBlockState(mutableBlockPos).`is`(config.placeOn)
     //    for (x in -width..width) {
     //        for (z in -width..width) {
     //            mutableBlockPos.setWithOffset(origin, x, -1, z)
     //            if (x.absoluteValue + z.absoluteValue < width &&
-    //                !level.getBlockState(origin.below()).`is`(config.placeOn)
-    //            )
-    //                return true
+    //                !level.getBlockState(mutableBlockPos).`is`(config.placeOn)
+    //            ) {
+    //                mutableBlockPos.setWithOffset(origin, x, -2, z)
+    //                if (!level.getBlockState(mutableBlockPos).`is`(config.placeOn)) return true
+    //            }
     //        }
     //    }
     //    return false
@@ -86,7 +86,7 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
             for (z in -width..width) {
                 val size = x.absoluteValue + z.absoluteValue
                 if (size <= width) {
-                    for (y in 0..<height) {
+                    for (y in -size..<height) {
                         mutableBlockPos.setWithOffset(origin, x, y, z)
                         if (isReplaceable(worldGenLevel, mutableBlockPos, config, true)) {
                             val blockState = config.stemBlock.getState(randomSource, origin)
@@ -193,7 +193,7 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
             this.setBlock(worldGenLevel, mutableBlockPos, config.lightBlock.getState(randomSource, mutableBlockPos))
         } else if (randomSource.nextFloat() < wartChance) {
             this.setBlock(worldGenLevel, mutableBlockPos, config.capBlock.getState(randomSource, mutableBlockPos))
-            if (config.featureChance.sample(randomSource) > randomSource.nextFloat()) { //was varying, but around X<0.085f
+            if (config.featureChance.sample(randomSource) == 0) { //was varying, but around X<0.085f
                 tryPlaceVineFeature(mutableBlockPos, worldGenLevel, chunkGenerator, config, randomSource)
             }
         }
@@ -211,7 +211,7 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
             this.setBlock(worldGenLevel, blockPos, blockState)
         } else if (randomSource.nextFloat().toDouble() < 0.15) {
             this.setBlock(worldGenLevel, blockPos, blockState)
-            if (config.featureChance.sample(randomSource) > randomSource.nextFloat()) { //was 1 in 11
+            if (config.featureChance.sample(randomSource) == 0) { //was 1 in 11
                 tryPlaceVineFeature(blockPos, worldGenLevel, chunkGenerator, config, randomSource)
             }
         }

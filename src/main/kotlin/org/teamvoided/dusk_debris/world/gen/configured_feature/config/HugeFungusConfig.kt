@@ -15,13 +15,14 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature
 class HugeFungusConfig(
     val stemBlock: BlockStateProvider,
     val stemHeight: IntProvider,
-    val stemWidth: IntProvider,
+    val stemRadius: IntProvider,
     val capBlock: BlockStateProvider,
     val lightBlock: BlockStateProvider,
+    val placeOn: TagKey<Block>,
     val stops: TagKey<Block>,
     val stemReplaceable: TagKey<Block>,
     val vineFeature: Holder<PlacedFeature>,
-    val featureChance: FloatProvider,
+    val featureChance: IntProvider,
 ) : FeatureConfiguration {
 
     companion object {
@@ -30,13 +31,14 @@ class HugeFungusConfig(
                 instance.group(
                     BlockStateProvider.CODEC.fieldOf("stem_block").forGetter { it.stemBlock },
                     IntProvider.codec(1, 32).fieldOf("stem_height").forGetter { it.stemHeight },
-                    IntProvider.codec(1, 5).fieldOf("stem_width").forGetter { it.stemWidth },
+                    IntProvider.codec(0, 5).fieldOf("stem_radius").forGetter { it.stemRadius },
                     BlockStateProvider.CODEC.fieldOf("cap_block").forGetter { it.capBlock },
                     BlockStateProvider.CODEC.fieldOf("light_block").forGetter { it.lightBlock },
+                    TagKey.hashedCodec(Registries.BLOCK).fieldOf("placeOn").forGetter { it.placeOn },
                     TagKey.hashedCodec(Registries.BLOCK).fieldOf("stops").forGetter { it.stops },
                     TagKey.hashedCodec(Registries.BLOCK).fieldOf("stem_replaceable").forGetter { it.stemReplaceable },
                     PlacedFeature.CODEC.fieldOf("default").forGetter { it.vineFeature },
-                    FloatProvider.codec(0f, 1f).fieldOf("feature_chance").forGetter { it.featureChance },
+                    IntProvider.codec(0, 100).fieldOf("feature_chance").forGetter { it.featureChance },
                 ).apply(instance, ::HugeFungusConfig)
             }
     }
