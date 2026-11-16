@@ -25,8 +25,12 @@ object DuskPlacedFeatures {
     val HUGE_WARPED_FUNGUS_0 = nether("huge_fungus/warped_0")
     val HUGE_WARPED_FUNGUS_1 = nether("huge_fungus/warped_1")
     val HUGE_WARPED_FUNGUS_2 = nether("huge_fungus/warped_2")
+    val CRIMSON_WASTE_FUNGI = nether("vegetation/crimson_waste_huge_fungi")
     val CRIMSON_FOREST_FUNGI = nether("vegetation/crimson_forest_huge_fungi")
+    val CRIMSON_FLOURISH_FUNGI = nether("vegetation/crimson_flourish_huge_fungi")
+    val WARPED_WASTE_FUNGI = nether("vegetation/warped_waste_huge_fungi")
     val WARPED_FOREST_FUNGI = nether("vegetation/warped_forest_huge_fungi")
+    val WARPED_FLOURISH_FUNGI = nether("vegetation/warped_flourish_huge_fungi")
 
     val HUGE_BLUE_NETHERSHROOM = nether("huge_blue_nethershroom")
     val WARPED_BLUE_NETHERSHROOM_PATCH = nether("warped_blue_nethershroom_patch")

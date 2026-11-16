@@ -21,7 +21,7 @@ class AttachedToTrunkTreeDecorator(
         val set: MutableSet<BlockPos> = HashSet()
         val randomGenerator = placer.random()
 
-        val var4: Iterator<BlockPos> =            Util.shuffledCopy(placer.logs(), randomGenerator) .iterator()
+        val var4: Iterator<BlockPos> = Util.shuffledCopy(placer.logs(), randomGenerator).iterator()
 
         while (true) {
             var pos: BlockPos

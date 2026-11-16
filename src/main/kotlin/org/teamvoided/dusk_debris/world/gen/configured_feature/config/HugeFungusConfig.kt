@@ -5,12 +5,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.Registries
 import net.minecraft.tags.TagKey
-import net.minecraft.util.valueproviders.FloatProvider
 import net.minecraft.util.valueproviders.IntProvider
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider
+import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecorator
 import net.minecraft.world.level.levelgen.placement.PlacedFeature
+import java.util.function.Function
 
 class HugeFungusConfig(
     val stemBlock: BlockStateProvider,
@@ -21,9 +22,29 @@ class HugeFungusConfig(
     val placeOn: TagKey<Block>,
     val stops: TagKey<Block>,
     val stemReplaceable: TagKey<Block>,
-    val vineFeature: Holder<PlacedFeature>,
-    val featureChance: IntProvider,
+    val decorators: List<TreeDecorator>,
 ) : FeatureConfiguration {
+    constructor(
+        stemBlock: BlockStateProvider,
+        stemHeight: IntProvider,
+        stemRadius: IntProvider,
+        capBlock: BlockStateProvider,
+        lightBlock: BlockStateProvider,
+        placeOn: TagKey<Block>,
+        stops: TagKey<Block>,
+        stemReplaceable: TagKey<Block>,
+        vararg decorators: TreeDecorator,
+    ) : this(
+        stemBlock,
+        stemHeight,
+        stemRadius,
+        capBlock,
+        lightBlock,
+        placeOn,
+        stops,
+        stemReplaceable,
+        decorators.toList()
+    )
 
     companion object {
         val CODEC: Codec<HugeFungusConfig> =
@@ -37,8 +58,7 @@ class HugeFungusConfig(
                     TagKey.hashedCodec(Registries.BLOCK).fieldOf("placeOn").forGetter { it.placeOn },
                     TagKey.hashedCodec(Registries.BLOCK).fieldOf("stops").forGetter { it.stops },
                     TagKey.hashedCodec(Registries.BLOCK).fieldOf("stem_replaceable").forGetter { it.stemReplaceable },
-                    PlacedFeature.CODEC.fieldOf("default").forGetter { it.vineFeature },
-                    IntProvider.codec(0, 100).fieldOf("feature_chance").forGetter { it.featureChance },
+                    TreeDecorator.CODEC.listOf().fieldOf("decorators").forGetter { it.decorators },
                 ).apply(instance, ::HugeFungusConfig)
             }
     }

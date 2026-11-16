@@ -13,6 +13,7 @@ import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacer
 import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacerType
 import org.teamvoided.dusk_debris.DuskDebris
 import org.teamvoided.dusk_debris.world.gen.tree.decorator.AttachedToTrunkTreeDecorator
+import org.teamvoided.dusk_debris.world.gen.tree.decorator.FeatureOnLeavesTreeDecorator
 import org.teamvoided.dusk_debris.world.gen.tree.foliage.BirchFoliagePlacer
 import org.teamvoided.dusk_debris.world.gen.tree.foliage.CypressFoliagePlacer
 import org.teamvoided.dusk_debris.world.gen.tree.foliage.OakFoliagePlacer
@@ -23,6 +24,7 @@ object DuskTreeStuff {
     val OAK_FOLIAGE_PLACER = registerFoliagePlacer("oak_foliage_placer", OakFoliagePlacer.CODEC)
     val BIRCH_FOLIAGE_PLACER = registerFoliagePlacer("birch_foliage_placer", BirchFoliagePlacer.CODEC)
     val ATTACHED_TO_TRUNK_DECORATOR = registerDecorator("attached_to_trunk", AttachedToTrunkTreeDecorator.CODEC)
+    val FEATURE_ON_LEAVES_DECORATOR = registerDecorator("feature_on_leaves", FeatureOnLeavesTreeDecorator.CODEC)
 
     val CYPRESS_FOLIAGE_PLACER = registerFoliagePlacer("cypress_foliage_placer", CypressFoliagePlacer.CODEC)
     val CYPRESS_ROOT_PLACER = registerRootPlacer("cypress_root_placer", CypressRootPlacer.CODEC)

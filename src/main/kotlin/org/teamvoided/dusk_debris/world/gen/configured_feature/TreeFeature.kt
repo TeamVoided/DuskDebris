@@ -35,8 +35,8 @@ class TreeFeature(codec: Codec<TreeConfiguration>) : Feature<TreeConfiguration>(
         world: WorldGenLevel,
         random: RandomSource,
         pos: BlockPos,
+        rootReplacer: BiConsumer<BlockPos, BlockState>,
         trunkReplacer: BiConsumer<BlockPos, BlockState>,
-        foliageReplacer: BiConsumer<BlockPos, BlockState>,
         placer: FoliagePlacer.FoliageSetter,
         config: TreeConfiguration
     ): Boolean {
@@ -53,11 +53,11 @@ class TreeFeature(codec: Codec<TreeConfiguration>) : Feature<TreeConfiguration>(
             return if (topPos < trunkHeight && (optionalInt.isEmpty || topPos < optionalInt.asInt)) {
                 false
             } else if (config.rootPlacer.isPresent &&
-                !config.rootPlacer.get().placeRoots(world, trunkReplacer, random, pos, trunkBase, config)
+                !config.rootPlacer.get().placeRoots(world, rootReplacer, random, pos, trunkBase, config)
             ) {
                 false
             } else {
-                val list = config.trunkPlacer.placeTrunk(world, foliageReplacer, random, topPos, trunkBase, config)
+                val list = config.trunkPlacer.placeTrunk(world, trunkReplacer, random, topPos, trunkBase, config)
                 list.forEach { node: FoliagePlacer.FoliageAttachment ->
                     config.foliagePlacer.createFoliage(
                         world,
@@ -111,15 +111,15 @@ class TreeFeature(codec: Codec<TreeConfiguration>) : Feature<TreeConfiguration>(
         val logPositions: MutableSet<BlockPos> = Sets.newHashSet()
         val leafPositions: MutableSet<BlockPos> = Sets.newHashSet()
         val decoratorPositions: MutableSet<BlockPos> = Sets.newHashSet()
-        val trunkReplacer = BiConsumer { pos: BlockPos, state: BlockState ->
+        val rootPlacer = BiConsumer { pos: BlockPos, state: BlockState ->
             rootPositions.add(pos.immutable())
             structureWorldAccess.setBlock(pos, state, FORCE_STATE_AND_NOTIFY_ALL)
         }
-        val foliageReplacer = BiConsumer<BlockPos, BlockState> { pos: BlockPos, state: BlockState? ->
+        val logPlacer = BiConsumer<BlockPos, BlockState> { pos: BlockPos, state: BlockState? ->
             logPositions.add(pos.immutable())
             structureWorldAccess.setBlock(pos, state, FORCE_STATE_AND_NOTIFY_ALL)
         }
-        val placer: FoliagePlacer.FoliageSetter = object : FoliagePlacer.FoliageSetter {
+        val leafPlacer: FoliagePlacer.FoliageSetter = object : FoliagePlacer.FoliageSetter {
             override fun set(pos: BlockPos, state: BlockState) {
                 leafPositions.add(pos.immutable())
                 structureWorldAccess.setBlock(pos, state, FORCE_STATE_AND_NOTIFY_ALL)
@@ -129,7 +129,7 @@ class TreeFeature(codec: Codec<TreeConfiguration>) : Feature<TreeConfiguration>(
                 return leafPositions.contains(pos)
             }
         }
-        val replacer = BiConsumer<BlockPos, BlockState> { pos: BlockPos, state: BlockState ->
+        val decoratorPlacer = BiConsumer<BlockPos, BlockState> { pos: BlockPos, state: BlockState ->
             decoratorPositions.add(pos.immutable())
             structureWorldAccess.setBlock(pos, state, FORCE_STATE_AND_NOTIFY_ALL)
         }
@@ -137,23 +137,23 @@ class TreeFeature(codec: Codec<TreeConfiguration>) : Feature<TreeConfiguration>(
             structureWorldAccess,
             randomGenerator,
             blockPos,
-            trunkReplacer,
-            foliageReplacer,
-            placer,
+            rootPlacer,
+            logPlacer,
+            leafPlacer,
             treeFeatureConfig
         )
         if (canGenerate && (logPositions.isNotEmpty() || leafPositions.isNotEmpty())) {
             if (treeFeatureConfig.decorators.isNotEmpty()) {
-                val placer2 = TreeDecorator.Context(
+                val decoratorContext = TreeDecorator.Context(
                     structureWorldAccess,
-                    replacer,
+                    decoratorPlacer,
                     randomGenerator,
                     logPositions,
                     leafPositions,
                     rootPositions
                 )
                 treeFeatureConfig.decorators.forEach(Consumer { decorator: TreeDecorator ->
-                    decorator.place(placer2)
+                    decorator.place(decoratorContext)
                 })
             }
 

@@ -3,7 +3,6 @@ package org.teamvoided.dusk_debris.data.gen.world.gen
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.Holder
 import net.minecraft.core.registries.Registries
 import net.minecraft.data.worldgen.BootstrapContext
 import net.minecraft.data.worldgen.placement.PlacementUtils
@@ -14,7 +13,7 @@ import net.minecraft.world.level.levelgen.VerticalAnchor
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature
 import net.minecraft.world.level.levelgen.placement.*
-import org.teamvoided.dusk_debris.data.gen.world.gen.placed_feature.NetherPlacedFeatureCreators.netherPlacedFeatureCreators
+import org.teamvoided.dusk_debris.data.gen.world.gen.placed_feature.NetherPFCreators.netherPlacedFeatureCreators
 import org.teamvoided.dusk_debris.data.worldgen.DuskConfiguredFeatures
 import org.teamvoided.dusk_debris.data.worldgen.DuskPlacedFeatures
 

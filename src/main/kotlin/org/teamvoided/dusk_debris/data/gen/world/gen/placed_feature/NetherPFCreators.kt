@@ -3,10 +3,9 @@ package org.teamvoided.dusk_debris.data.gen.world.gen.placed_feature
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.data.worldgen.BootstrapContext
-import net.minecraft.data.worldgen.placement.CavePlacements
-import net.minecraft.data.worldgen.placement.PlacementUtils
 import net.minecraft.resources.ResourceKey
 import net.minecraft.util.valueproviders.ConstantInt
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.levelgen.VerticalAnchor
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate
@@ -19,7 +18,7 @@ import org.teamvoided.dusk_debris.data.tags.DuskBlockTags
 import org.teamvoided.dusk_debris.data.worldgen.DuskConfiguredFeatures
 import org.teamvoided.dusk_debris.data.worldgen.DuskPlacedFeatures
 
-object NetherPlacedFeatureCreators {
+object NetherPFCreators {
     fun BootstrapContext<PlacedFeature>.netherPlacedFeatureCreators() {
         this.hugeFungus()
         this.nethershrooms()
@@ -44,27 +43,95 @@ object NetherPlacedFeatureCreators {
             DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_VINES,
             DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_VINES,
         )
-        this.register(
+        this.hugeFungus(
             DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_0,
             DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_0,
-            BlockPredicateFilter.forPredicate(
-                BlockPredicate.wouldSurvive(Blocks.CRIMSON_FUNGUS.defaultBlockState(), BlockPos.ZERO)
-            )
+            Blocks.CRIMSON_FUNGUS
+        )
+        this.hugeFungus(
+            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_1,
+            DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_1,
+            Blocks.CRIMSON_FUNGUS
+        )
+        this.hugeFungus(
+            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_2,
+            DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_2,
+            Blocks.CRIMSON_FUNGUS
+        )
+        this.hugeFungus(
+            DuskPlacedFeatures.HUGE_WARPED_FUNGUS_0,
+            DuskConfiguredFeatures.HUGE_WARPED_FUNGUS_0,
+            Blocks.WARPED_FUNGUS
+        )
+        this.hugeFungus(
+            DuskPlacedFeatures.HUGE_WARPED_FUNGUS_1,
+            DuskConfiguredFeatures.HUGE_WARPED_FUNGUS_1,
+            Blocks.WARPED_FUNGUS
+        )
+        this.hugeFungus(
+            DuskPlacedFeatures.HUGE_WARPED_FUNGUS_2,
+            DuskConfiguredFeatures.HUGE_WARPED_FUNGUS_2,
+            Blocks.WARPED_FUNGUS
+        )
+
+        this.hugeFungi(
+            DuskPlacedFeatures.CRIMSON_WASTE_FUNGI,
+            DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_1,
+            WASTE_FUNGI_COUNT
         )
         this.hugeFungi(
             DuskPlacedFeatures.CRIMSON_FOREST_FUNGI,
-            DuskConfiguredFeatures.CRIMSON_FOREST_FUNGI
+            DuskConfiguredFeatures.CRIMSON_FOREST_FUNGI,
+            FOREST_FUNGI_COUNT
+        )
+        this.hugeFungi(
+            DuskPlacedFeatures.CRIMSON_FLOURISH_FUNGI,
+            DuskConfiguredFeatures.CRIMSON_FLOURISH_FUNGI,
+            FLOURISH_FUNGI_COUNT
+        )
+        this.hugeFungi(
+            DuskPlacedFeatures.WARPED_WASTE_FUNGI,
+            DuskConfiguredFeatures.HUGE_WARPED_FUNGUS_1,
+            WASTE_FUNGI_COUNT
+        )
+        this.hugeFungi(
+            DuskPlacedFeatures.WARPED_FOREST_FUNGI,
+            DuskConfiguredFeatures.WARPED_FOREST_FUNGI,
+            FOREST_FUNGI_COUNT
+        )
+        this.hugeFungi(
+            DuskPlacedFeatures.WARPED_FLOURISH_FUNGI,
+            DuskConfiguredFeatures.WARPED_FLOURISH_FUNGI,
+            FLOURISH_FUNGI_COUNT
         )
     }
 
-    private fun BootstrapContext<PlacedFeature>.hugeFungi(
+    private fun BootstrapContext<PlacedFeature>.hugeFungus(
         placed: ResourceKey<PlacedFeature>,
-        configuredFeature: ResourceKey<ConfiguredFeature<*, *>>
+        configuredFeature: ResourceKey<ConfiguredFeature<*, *>>,
+        block: Block
     ) {
         this.register(
             placed,
             configuredFeature,
-            CountPlacement.of(188),
+            BlockPredicateFilter.forPredicate(
+                BlockPredicate.wouldSurvive(block.defaultBlockState(), BlockPos.ZERO)
+            )
+        )
+    }
+
+    private const val WASTE_FUNGI_COUNT = 188
+    private const val FOREST_FUNGI_COUNT = 188
+    private const val FLOURISH_FUNGI_COUNT = FOREST_FUNGI_COUNT
+    private fun BootstrapContext<PlacedFeature>.hugeFungi(
+        placed: ResourceKey<PlacedFeature>,
+        configuredFeature: ResourceKey<ConfiguredFeature<*, *>>,
+        count: Int
+    ) {
+        this.register(
+            placed,
+            configuredFeature,
+            CountPlacement.of(count),
             InSquarePlacement.spread(),
             HeightRangePlacement.uniform(
                 VerticalAnchor.absolute(0),

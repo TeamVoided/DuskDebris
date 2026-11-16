@@ -1,10 +1,10 @@
 package org.teamvoided.dusk_debris.world.gen.configured_feature
 
+import com.google.common.collect.Sets
 import com.mojang.serialization.Codec
 import net.minecraft.core.BlockPos
 import net.minecraft.core.BlockPos.MutableBlockPos
 import net.minecraft.core.Direction
-import net.minecraft.tags.BlockTags
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.WorldGenLevel
 import net.minecraft.world.level.block.Blocks
@@ -12,10 +12,15 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.ChunkGenerator
 import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext
+import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecorator
 import org.teamvoided.dusk_debris.world.gen.configured_feature.config.HugeFungusConfig
+import java.util.function.BiConsumer
+import java.util.function.Consumer
+import java.util.function.Function
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
+//just convert all of this to a tree and foliage eventually
 class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConfig>(codec) {
     override fun place(featurePlaceContext: FeaturePlaceContext<HugeFungusConfig>): Boolean {
         val worldGenLevel = featurePlaceContext.level()
@@ -30,9 +35,44 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
         val width = config.stemRadius.sample(randomSource)
         //if (cancelBecauseBase(worldGenLevel, config, origin, width)) return false
 
+        val stemPositions: MutableSet<BlockPos> = Sets.newHashSet()
+        val wartPositions: MutableSet<BlockPos> = Sets.newHashSet()
+        val decoratorPositions: MutableSet<BlockPos> = Sets.newHashSet()
+        val stemPlacer = BiConsumer { pos: BlockPos, state: BlockState ->
+            stemPositions.add(pos.immutable())
+            worldGenLevel.setBlock(pos, state, 19)
+        }
+        val wartPlacer = BiConsumer<BlockPos, BlockState> { pos: BlockPos, state: BlockState? ->
+            wartPositions.add(pos.immutable())
+            worldGenLevel.setBlock(pos, state, 19)
+        }
+
         worldGenLevel.setBlock(origin, Blocks.AIR.defaultBlockState(), 4)
-        this.placeStem(worldGenLevel, randomSource, config, origin, height, width)
-        this.placeHat(worldGenLevel, chunkGenerator, randomSource, config, origin, height, width)
+        placeStem(worldGenLevel, randomSource, config, origin, height, width, stemPlacer)
+        placeHat(worldGenLevel, randomSource, config, origin, height, width, wartPlacer)
+
+        if (stemPositions.isNotEmpty() || wartPositions.isNotEmpty()) {
+            if (config.decorators.isNotEmpty()) {
+                val decoratorPlacer = BiConsumer<BlockPos, BlockState> { pos: BlockPos, state: BlockState ->
+                    decoratorPositions.add(pos.immutable())
+                    worldGenLevel.setBlock(pos, state, 19)
+                }
+                val rootPositions: MutableSet<BlockPos> = Sets.newHashSet()
+                val decoratorContext = TreeDecorator.Context(
+                    worldGenLevel,
+                    decoratorPlacer,
+                    randomSource,
+                    stemPositions,
+                    wartPositions,
+                    rootPositions
+                )
+                config.decorators.forEach(Consumer {
+                    it.place(decoratorContext)
+                })
+            }
+        } else {
+            return false
+        }
         return true
     }
 
@@ -78,7 +118,8 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
         config: HugeFungusConfig,
         origin: BlockPos,
         height: Int,
-        width: Int
+        width: Int,
+        stemPositions: BiConsumer<BlockPos, BlockState>
     ) {
         val mutableBlockPos = MutableBlockPos()
 
@@ -88,15 +129,14 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
                 if (size <= width) {
                     for (y in -size..<height) {
                         mutableBlockPos.setWithOffset(origin, x, y, z)
-                        if (isReplaceable(worldGenLevel, mutableBlockPos, config, true)) {
-                            val blockState = config.stemBlock.getState(randomSource, origin)
-                            if (size == width) {
-                                if (randomSource.nextFloat() < (-y * height) - 0.1f + height) {
-                                    this.setBlock(worldGenLevel, mutableBlockPos, blockState)
-                                }
-                            } else {
-                                this.setBlock(worldGenLevel, mutableBlockPos, blockState)
-                            }
+                        if (isReplaceable(worldGenLevel, mutableBlockPos, config, true) &&
+                            (size != width || randomSource.nextFloat() < 0.1f)
+                        ) {
+                            placeBlock(
+                                stemPositions,
+                                mutableBlockPos,
+                                config.stemBlock.getState(randomSource, mutableBlockPos)
+                            )
                         }
                     }
                 }
@@ -106,12 +146,12 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
 
     private fun placeHat(
         worldGenLevel: WorldGenLevel,
-        chunkGenerator: ChunkGenerator,
         randomSource: RandomSource,
         config: HugeFungusConfig,
         origin: BlockPos,
         height: Int,
-        width: Int
+        width: Int,
+        wartPositions: BiConsumer<BlockPos, BlockState>
     ) {
         val mutableBlockPos = MutableBlockPos()
         val hatHeight = min(randomSource.nextInt(1 + height / 3) + 5, height)
@@ -135,43 +175,43 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
                     if (isReplaceable(worldGenLevel, mutableBlockPos, config, false)) {
                         if (closeToBottom) {
                             if (!notTopEdge) {
-                                this.placeHatDropBlock(
+                                placeHatDropBlock(
                                     worldGenLevel,
-                                    chunkGenerator,
                                     randomSource,
                                     mutableBlockPos,
-                                    config
+                                    config,
+                                    wartPositions
                                 )
                             }
                         } else if (notTopEdge) {
-                            this.placeHatBlock(
+                            placeHatBlock(
                                 worldGenLevel,
-                                chunkGenerator,
                                 randomSource,
                                 config,
                                 mutableBlockPos,
                                 0.1f,
-                                0.2f
+                                0.2f,
+                                wartPositions
                             )
                         } else if (corner) {
-                            this.placeHatBlock(
+                            placeHatBlock(
                                 worldGenLevel,
-                                chunkGenerator,
                                 randomSource,
                                 config,
                                 mutableBlockPos,
                                 0.01f,
-                                0.7f
+                                0.7f,
+                                wartPositions
                             )
                         } else {
-                            this.placeHatBlock(
+                            placeHatBlock(
                                 worldGenLevel,
-                                chunkGenerator,
                                 randomSource,
                                 config,
                                 mutableBlockPos,
                                 0.0005f,
-                                0.98f
+                                0.98f,
+                                wartPositions
                             )
                         }
                     }
@@ -182,39 +222,42 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
 
     private fun placeHatBlock(
         worldGenLevel: WorldGenLevel,
-        chunkGenerator: ChunkGenerator,
         randomSource: RandomSource,
         config: HugeFungusConfig,
         mutableBlockPos: MutableBlockPos,
         lightChance: Float,
         wartChance: Float,
+        wartPositions: BiConsumer<BlockPos, BlockState>
     ) {
         if (randomSource.nextFloat() < lightChance) {
-            this.setBlock(worldGenLevel, mutableBlockPos, config.lightBlock.getState(randomSource, mutableBlockPos))
+            placeBlock(wartPositions, mutableBlockPos, config.lightBlock.getState(randomSource, mutableBlockPos))
         } else if (randomSource.nextFloat() < wartChance) {
-            this.setBlock(worldGenLevel, mutableBlockPos, config.capBlock.getState(randomSource, mutableBlockPos))
-            if (config.featureChance.sample(randomSource) == 0) { //was varying, but around X<0.085f
-                tryPlaceVineFeature(mutableBlockPos, worldGenLevel, chunkGenerator, config, randomSource)
-            }
+            placeBlock(wartPositions, mutableBlockPos, config.capBlock.getState(randomSource, mutableBlockPos))
         }
     }
 
     private fun placeHatDropBlock(
         worldGenLevel: WorldGenLevel,
-        chunkGenerator: ChunkGenerator,
         randomSource: RandomSource,
         blockPos: BlockPos,
-        config: HugeFungusConfig
+        config: HugeFungusConfig,
+        wartPositions: BiConsumer<BlockPos, BlockState>
     ) {
         val blockState = config.capBlock.getState(randomSource, blockPos)
         if (worldGenLevel.getBlockState(blockPos.below()).`is`(blockState.block)) {
-            this.setBlock(worldGenLevel, blockPos, blockState)
+            placeBlock(wartPositions, blockPos, blockState)
         } else if (randomSource.nextFloat().toDouble() < 0.15) {
-            this.setBlock(worldGenLevel, blockPos, blockState)
-            if (config.featureChance.sample(randomSource) == 0) { //was 1 in 11
-                tryPlaceVineFeature(blockPos, worldGenLevel, chunkGenerator, config, randomSource)
-            }
+            placeBlock(wartPositions, blockPos, blockState)
         }
+    }
+
+    private fun placeBlock(
+        biConsumer: BiConsumer<BlockPos, BlockState>,
+        blockPos: BlockPos,
+        blockState: BlockState
+    ): Boolean {
+        biConsumer.accept(blockPos, Function.identity<BlockState>().apply(blockState))
+        return true
     }
 
     companion object {
@@ -232,19 +275,6 @@ class HugeFungusFeature(codec: Codec<HugeFungusConfig>) : Feature<HugeFungusConf
                 worldGenLevel.getBlockState(blockPos).`is`(config.stemReplaceable)
             } else {
                 false
-            }
-        }
-
-        private fun tryPlaceVineFeature(
-            blockPos: BlockPos,
-            worldGenLevel: WorldGenLevel,
-            chunkGenerator: ChunkGenerator,
-            config: HugeFungusConfig,
-            randomSource: RandomSource
-        ) {
-            val mutableBlockPos = blockPos.mutable().move(Direction.DOWN)
-            if (worldGenLevel.isEmptyBlock(mutableBlockPos)) {
-                config.vineFeature.value().place(worldGenLevel, chunkGenerator, randomSource, mutableBlockPos)
             }
         }
     }

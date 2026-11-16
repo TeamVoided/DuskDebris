@@ -26,6 +26,7 @@ import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvi
 import net.minecraft.world.level.levelgen.feature.stateproviders.RandomizedIntStateProvider
 import net.minecraft.world.level.levelgen.feature.stateproviders.SimpleStateProvider
 import net.minecraft.world.level.levelgen.feature.stateproviders.WeightedStateProvider
+import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecorator
 import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter
 import net.minecraft.world.level.levelgen.placement.PlacedFeature
 import org.teamvoided.dusk_debris.data.gen.world.gen.ConfiguredFeatureCreator.registerConfiguredFeature
@@ -37,7 +38,7 @@ import org.teamvoided.dusk_debris.init.worldgen.DuskFeatures
 import org.teamvoided.dusk_debris.world.gen.configured_feature.config.HugeFungusConfig
 import org.teamvoided.dusk_debris.world.gen.configured_feature.config.HugeNethershroomFeatureConfig
 import org.teamvoided.dusk_debris.world.gen.configured_feature.config.NoiseSurfaceFeatureConfig
-import kotlin.getOrThrow
+import org.teamvoided.dusk_debris.world.gen.tree.decorator.FeatureOnLeavesTreeDecorator
 
 object NetherCFCreators {
     fun BootstrapContext<ConfiguredFeature<*, *>>.netherConfiguredFeatureCreators() {
@@ -87,47 +88,73 @@ object NetherCFCreators {
         val fungus0Width = ConstantInt.of(0)
         val fungus1Width = weightedListInt(ConstantInt.of(0) to 16, ConstantInt.of(1) to 1)
         val fungus2Width = weightedListInt(ConstantInt.of(0) to 6, ConstantInt.of(1) to 10, ConstantInt.of(2) to 1)
+        val fungusVines = FeatureOnLeavesTreeDecorator(
+            this.lookup(Registries.PLACED_FEATURE).getOrThrow(DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_VINES),
+            1 / 11f,
+            1,
+            listOf(Direction.DOWN)
+        )
         this.hugeFungus(
             DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_0,
             Blocks.CRIMSON_STEM,
             fungus0Height, fungus0Width,
-            Blocks.NETHER_WART_BLOCK, Blocks.SHROOMLIGHT,
-            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_VINES, 10
+            Blocks.NETHER_WART_BLOCK,
+            fungusVines
         )
         this.hugeFungus(
             DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_1,
             Blocks.CRIMSON_STEM,
             fungus1Height, fungus1Width,
-            Blocks.NETHER_WART_BLOCK, Blocks.SHROOMLIGHT,
-            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_VINES, 10
+            Blocks.NETHER_WART_BLOCK,
+            fungusVines
         )
         this.hugeFungus(
             DuskConfiguredFeatures.HUGE_CRIMSON_FUNGUS_2,
             Blocks.CRIMSON_STEM,
             fungus2Height, fungus2Width,
-            Blocks.NETHER_WART_BLOCK, Blocks.SHROOMLIGHT,
-            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_VINES, 10,
-            true
+            Blocks.NETHER_WART_BLOCK,
+            true,
+            fungusVines
         )
         this.hugeFungus(
             DuskConfiguredFeatures.HUGE_WARPED_FUNGUS_0,
             Blocks.WARPED_STEM,
             fungus0Height, fungus0Width,
-            Blocks.WARPED_WART_BLOCK, Blocks.SHROOMLIGHT
+            Blocks.WARPED_WART_BLOCK,
         )
         this.hugeFungus(
             DuskConfiguredFeatures.HUGE_WARPED_FUNGUS_1,
             Blocks.WARPED_STEM,
             fungus1Height, fungus1Width,
-            Blocks.WARPED_WART_BLOCK, Blocks.SHROOMLIGHT
+            Blocks.WARPED_WART_BLOCK,
         )
         this.hugeFungus(
             DuskConfiguredFeatures.HUGE_WARPED_FUNGUS_2,
             Blocks.WARPED_STEM,
             fungus2Height, fungus2Width,
-            Blocks.WARPED_WART_BLOCK, Blocks.SHROOMLIGHT,
-            null,null,
+            Blocks.WARPED_WART_BLOCK,
             true
+        )
+
+        hugeFungi(
+            DuskConfiguredFeatures.CRIMSON_FOREST_FUNGI,
+            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_1,
+            DuskPlacedFeatures.HUGE_WARPED_FUNGUS_0 to 0.01f,
+        )
+        hugeFungi(
+            DuskConfiguredFeatures.CRIMSON_FLOURISH_FUNGI,
+            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_2,
+            DuskPlacedFeatures.HUGE_WARPED_FUNGUS_1 to 0.02f,
+        )
+        hugeFungi(
+            DuskConfiguredFeatures.WARPED_FOREST_FUNGI,
+            DuskPlacedFeatures.HUGE_WARPED_FUNGUS_1,
+            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_0 to 0.01f,
+        )
+        hugeFungi(
+            DuskConfiguredFeatures.WARPED_FLOURISH_FUNGI,
+            DuskPlacedFeatures.HUGE_WARPED_FUNGUS_2,
+            DuskPlacedFeatures.HUGE_CRIMSON_FUNGUS_1 to 0.02f,
         )
     }
 
@@ -163,12 +190,18 @@ object NetherCFCreators {
         height: IntProvider,
         radius: IntProvider,
         cap: Block,
-        fruit: Block,
-        vines: ResourceKey<PlacedFeature>? = null,
-        chance: Int? = null,
-        wartsStop: Boolean = false
+        decorator: TreeDecorator? = null
+    ) = this.hugeFungus(feature, stem, height, radius, cap, false, decorator)
+
+    private fun BootstrapContext<ConfiguredFeature<*, *>>.hugeFungus(
+        feature: ResourceKey<ConfiguredFeature<*, *>>,
+        stem: Block,
+        height: IntProvider,
+        radius: IntProvider,
+        cap: Block,
+        wartsStop: Boolean,
+        decorator: TreeDecorator? = null
     ) {
-        val placedFeatures = this.lookup(Registries.PLACED_FEATURE)
         this.registerConfiguredFeature(
             feature,
             DuskFeatures.HUGE_FUNGUS,
@@ -177,12 +210,11 @@ object NetherCFCreators {
                 height,
                 radius,
                 BlockStateProvider.simple(cap),
-                BlockStateProvider.simple(fruit),
+                BlockStateProvider.simple(Blocks.SHROOMLIGHT),
                 DuskBlockTags.HUGE_FUNGUS_PLANTABLE_ON,
                 if (wartsStop) DuskBlockTags.HUGE_FUNGUS_STOPS_WITH_WARTS else DuskBlockTags.HUGE_FUNGUS_STOPS,
                 DuskBlockTags.HUGE_FUNGUS_STEM_REPLACEABLE,
-                placedFeatures.getOrThrow(vines ?: DuskPlacedFeatures.EMPTY),
-                if (chance != null) UniformInt.of(0, chance) else ConstantInt.of(1)
+                if (decorator != null) listOf(decorator) else listOf()
             )
         )
     }

@@ -14,85 +14,89 @@ import net.minecraft.world.level.levelgen.GenerationStep.Decoration.UNDERGROUND_
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration.VEGETAL_DECORATION as vd9
 
 object NetherBiomeFeatures {
-    fun addNetherCarvers(generationSettings: BiomeGenerationSettings.Builder) {
-        generationSettings.addCarver(GenerationStep.Carving.AIR, Carvers.NETHER_CAVE)
-//        generationSettings.carver(GenerationStep.Carver.AIR, DuskConfiguredCarvers.NETHER_CANYON)
+    fun addNetherCarvers(gs: BiomeGenerationSettings.Builder) {
+        gs.addCarver(GenerationStep.Carving.AIR, Carvers.NETHER_CAVE)
+//        gs.carver(GenerationStep.Carver.AIR, DuskConfiguredCarvers.NETHER_CANYON)
     }
 
     fun addDefaultNetherFeatures(
-        generationSettings: BiomeGenerationSettings.Builder,
+        gs: BiomeGenerationSettings.Builder,
         springDouble: Boolean,
         hasMushrooms: Boolean,
         hasNetherMushrooms: Boolean,
-        hasSoulFire: Boolean = true,
+        hasSoulFire: Boolean = true, //soul fire only doesnt exist in crimson lol
     ) {
-        if (hasMushrooms) BiomeDefaultFeatures.addDefaultMushrooms(generationSettings)
-        if (!springDouble) generationSettings.addFeature(ud7, NetherPlacements.SPRING_OPEN)
-//        generationSettings.feature(l1, DuskPlacedFeatures.LAKE_LAVA_NETHER)
-        generationSettings.addFeature(ud7, NetherPlacements.PATCH_FIRE)
-        if (hasSoulFire) generationSettings.addFeature(ud7, NetherPlacements.PATCH_SOUL_FIRE)
-        generationSettings.addFeature(ud7, NetherPlacements.GLOWSTONE_EXTRA)
-        generationSettings.addFeature(ud7, NetherPlacements.GLOWSTONE)
-        generationSettings.addFeature(ud7, NetherPlacements.PATCH_CRIMSON_ROOTS)
+        if (hasMushrooms) BiomeDefaultFeatures.addDefaultMushrooms(gs)
+        if (!springDouble) gs.addFeature(ud7, NetherPlacements.SPRING_OPEN)
+//        gs.feature(l1, DuskPlacedFeatures.LAKE_LAVA_NETHER)
+        gs.addFeature(ud7, NetherPlacements.PATCH_FIRE)
+        if (hasSoulFire) gs.addFeature(ud7, NetherPlacements.PATCH_SOUL_FIRE)
+        gs.addFeature(ud7, NetherPlacements.GLOWSTONE_EXTRA)
+        gs.addFeature(ud7, NetherPlacements.GLOWSTONE)
+        gs.addFeature(ud7, NetherPlacements.PATCH_CRIMSON_ROOTS)
         if (hasNetherMushrooms) {
-            generationSettings.addFeature(ud7, VegetationPlacements.BROWN_MUSHROOM_NETHER)
-            generationSettings.addFeature(ud7, VegetationPlacements.RED_MUSHROOM_NETHER)
+            gs.addFeature(ud7, VegetationPlacements.BROWN_MUSHROOM_NETHER)
+            gs.addFeature(ud7, VegetationPlacements.RED_MUSHROOM_NETHER)
         }
-        generationSettings.addFeature(ud7, OrePlacements.ORE_MAGMA)
-        if (!springDouble) generationSettings.addFeature(ud7, NetherPlacements.SPRING_CLOSED)
-        else generationSettings.addFeature(ud7, NetherPlacements.SPRING_CLOSED_DOUBLE)
-        generationSettings.addFeature(lm2, DuskPlacedFeatures.BLACKSTONE_STRIPS)
+        gs.addFeature(ud7, OrePlacements.ORE_MAGMA)
+        if (!springDouble) gs.addFeature(ud7, NetherPlacements.SPRING_CLOSED)
+        else gs.addFeature(ud7, NetherPlacements.SPRING_CLOSED_DOUBLE)
+        gs.addFeature(lm2, DuskPlacedFeatures.BLACKSTONE_STRIPS)
     }
 
-    fun addNetherWastesFeatures(generationSettings: BiomeGenerationSettings.Builder) {
-        addDefaultNetherFeatures(generationSettings, false, true, true)
-        BiomeDefaultFeatures.addNetherDefaultOres(generationSettings)
+    fun addNetherWastesFeatures(gs: BiomeGenerationSettings.Builder) {
+        addDefaultNetherFeatures(gs, false, true, true)
+        BiomeDefaultFeatures.addNetherDefaultOres(gs)
     }
 
-    fun addCrimsonFeatures(generationSettings: BiomeGenerationSettings.Builder, ancientFlourish: Boolean, forest: Boolean) {
-        addDefaultNetherFeatures(generationSettings, false, true, false, false)
-        generationSettings.addFeature(vd9, NetherPlacements.WEEPING_VINES)
-//        generationSettings.feature(
-//            vd9,
-//            if (ancientFlourish) DuskPlacedFeatures.CRIMSON_FOREST_FUNGI else if (forest) DuskPlacedFeatures.CRIMSON_FOREST_FUNGI else DuskPlacedFeatures.CRIMSON_WASTES_FUNGI
-//        )
-        generationSettings.addFeature(vd9, NetherPlacements.CRIMSON_FOREST_VEGETATION)
-        BiomeDefaultFeatures.addNetherDefaultOres(generationSettings)
+    fun addCrimsonFeatures(gs: BiomeGenerationSettings.Builder, ancientFlourish: Boolean, forest: Boolean) {
+        addDefaultNetherFeatures(gs, false, true, false, false)
+        gs.addFeature(vd9, NetherPlacements.WEEPING_VINES)
+        gs.addFeature(
+            vd9,
+            if (ancientFlourish) DuskPlacedFeatures.CRIMSON_FOREST_FUNGI
+            else if (forest) DuskPlacedFeatures.CRIMSON_FOREST_FUNGI
+            else DuskPlacedFeatures.CRIMSON_WASTE_FUNGI
+        )
+        gs.addFeature(vd9, NetherPlacements.CRIMSON_FOREST_VEGETATION)
+        BiomeDefaultFeatures.addNetherDefaultOres(gs)
     }
 
-    fun addWarpedFeatures(generationSettings: BiomeGenerationSettings.Builder, ancientFlourish: Boolean, forest: Boolean) {
-        addDefaultNetherFeatures(generationSettings, false, true, false)
-//        generationSettings.feature(
-//            vd9,
-//            if (ancientFlourish) DuskPlacedFeatures.WARPED_FOREST_FUNGI else if (forest) DuskPlacedFeatures.WARPED_FOREST_FUNGI else DuskPlacedFeatures.WARPED_WASTES_FUNGI
-//        )
-        generationSettings.addFeature(vd9, NetherPlacements.WARPED_FOREST_VEGETATION)
-        generationSettings.addFeature(vd9, NetherPlacements.NETHER_SPROUTS)
-        generationSettings.addFeature(vd9, NetherPlacements.TWISTING_VINES)
-        BiomeDefaultFeatures.addNetherDefaultOres(generationSettings)
+    fun addWarpedFeatures(gs: BiomeGenerationSettings.Builder, ancientFlourish: Boolean, forest: Boolean) {
+        addDefaultNetherFeatures(gs, false, true, false)
+        gs.addFeature(
+            vd9,
+            if (ancientFlourish) DuskPlacedFeatures.WARPED_FOREST_FUNGI
+            else if (forest) DuskPlacedFeatures.WARPED_FOREST_FUNGI
+            else DuskPlacedFeatures.WARPED_WASTE_FUNGI
+        )
+        gs.addFeature(vd9, NetherPlacements.WARPED_FOREST_VEGETATION)
+        gs.addFeature(vd9, NetherPlacements.NETHER_SPROUTS)
+        gs.addFeature(vd9, NetherPlacements.TWISTING_VINES)
+        BiomeDefaultFeatures.addNetherDefaultOres(gs)
     }
 
-    fun addBasaltDeltaFeatures(generationSettings: BiomeGenerationSettings.Builder) {
-        generationSettings.addFeature(ss4, NetherPlacements.DELTA)
-        generationSettings.addFeature(ss4, NetherPlacements.SMALL_BASALT_COLUMNS)
-        generationSettings.addFeature(ss4, NetherPlacements.LARGE_BASALT_COLUMNS)
-//        generationSettings.feature(ud7, DuskPlacedFeatures.BASALT_BLOBS)
-//        generationSettings.feature(ud7, DuskPlacedFeatures.BLACKSTONE_BLOBS)
-        generationSettings.addFeature(ud7, NetherPlacements.SPRING_DELTA)
-        addDefaultNetherFeatures(generationSettings, true, false, true)
-        addBasaltMineables(generationSettings)
+    fun addBasaltDeltaFeatures(gs: BiomeGenerationSettings.Builder) {
+        gs.addFeature(ss4, NetherPlacements.DELTA)
+        gs.addFeature(ss4, NetherPlacements.SMALL_BASALT_COLUMNS)
+        gs.addFeature(ss4, NetherPlacements.LARGE_BASALT_COLUMNS)
+//        gs.feature(ud7, DuskPlacedFeatures.BASALT_BLOBS)
+//        gs.feature(ud7, DuskPlacedFeatures.BLACKSTONE_BLOBS)
+        gs.addFeature(ud7, NetherPlacements.SPRING_DELTA)
+        addDefaultNetherFeatures(gs, true, false, true)
+        addBasaltMineables(gs)
     }
 
-    fun addBasaltMineables(generationSettings: BiomeGenerationSettings.Builder) {
-        generationSettings.addFeature(ud7, OrePlacements.ORE_GOLD_DELTAS)
-        generationSettings.addFeature(ud7, OrePlacements.ORE_QUARTZ_DELTAS)
-        BiomeDefaultFeatures.addAncientDebris(generationSettings)
+    fun addBasaltMineables(gs: BiomeGenerationSettings.Builder) {
+        gs.addFeature(ud7, OrePlacements.ORE_GOLD_DELTAS)
+        gs.addFeature(ud7, OrePlacements.ORE_QUARTZ_DELTAS)
+        BiomeDefaultFeatures.addAncientDebris(gs)
     }
 
-    fun addSoulValleyFeatures(generationSettings: BiomeGenerationSettings.Builder) {
-        generationSettings.addFeature(lm2, NetherPlacements.BASALT_PILLAR)
-        addDefaultNetherFeatures(generationSettings, false, false, false)
-        generationSettings.addFeature(ud7, OrePlacements.ORE_SOUL_SAND)
-        BiomeDefaultFeatures.addNetherDefaultOres(generationSettings)
+    fun addSoulValleyFeatures(gs: BiomeGenerationSettings.Builder) {
+        gs.addFeature(lm2, NetherPlacements.BASALT_PILLAR)
+        addDefaultNetherFeatures(gs, false, false, false)
+        gs.addFeature(ud7, OrePlacements.ORE_SOUL_SAND)
+        BiomeDefaultFeatures.addNetherDefaultOres(gs)
     }
 }
