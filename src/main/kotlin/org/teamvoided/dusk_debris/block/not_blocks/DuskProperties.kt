@@ -16,7 +16,8 @@ object DuskProperties {
     val DISTANCE_DUST: IntegerProperty = IntegerProperty.create("distance", 1, DustLayerBlock.MAX_LAYERS)
 
 
-    val SQUISHED: BooleanProperty = BooleanProperty.create("squished")
+    val SQUISHED_BOOL: BooleanProperty = BooleanProperty.create("squished")
+    val SQUISHED: IntegerProperty = IntegerProperty.create("squished", 0, 2)
     val LID: BooleanProperty = BooleanProperty.create("lid")
     val COCOON: BooleanProperty = BooleanProperty.create("cocoon")
 

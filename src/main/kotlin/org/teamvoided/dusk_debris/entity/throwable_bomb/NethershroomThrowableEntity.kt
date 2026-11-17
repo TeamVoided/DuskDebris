@@ -43,18 +43,15 @@ open class NethershroomThrowableEntity : AbstractThrwowableBombEntity {
             0.7f,
             0.7f + level().random.nextFloat() * 0.2f
         )
-        if (statusEffect == null) {
-            NethershroomPlantBlock.explode(level(), this.blockPosition(), getTrailingParticle())
-        } else {
-            NethershroomPlantBlock.explode(
-                level(),
-                this.blockPosition(),
-                this.getTrailingParticle(),
-                this.statusEffect!!,
-                this.hasDoubleEffect
-            )
-        }
+        NethershroomPlantBlock.explode(
+            level(),
+            blockPosition(),
+            getTrailingParticle(),
+            if (statusEffect == null) null else statusEffect,
+            if (statusEffect == null) false else hasDoubleEffect
+        )
         super.explode()
     }
+
     override fun getTrailingParticle(): ParticleOptions = ParticleTypes.SMOKE
 }

@@ -32,10 +32,12 @@ object BiomeCreator {
 
         c.register(DuskBiomes.NETHER_TEST, c.createNetherTest())
         c.register(DuskBiomes.NETHER_WASTES, c.createNetherWastes())
-        c.register(DuskBiomes.CRIMSON_FOREST, c.createCrimsonForest())
-        c.register(DuskBiomes.CRIMSON_WASTES, c.createCrimsonForest(false, false))
-        c.register(DuskBiomes.WARPED_FOREST, c.createWarpedForest())
-        c.register(DuskBiomes.WARPED_WASTES, c.createWarpedForest(false, false))
+        c.register(DuskBiomes.CRIMSON_WASTES, c.createCrimsonForest(0))
+        c.register(DuskBiomes.CRIMSON_FOREST, c.createCrimsonForest(1))
+        c.register(DuskBiomes.CRIMSON_FLOURISH, c.createCrimsonForest(2))
+        c.register(DuskBiomes.WARPED_WASTES, c.createWarpedForest(0))
+        c.register(DuskBiomes.WARPED_FOREST, c.createWarpedForest(1))
+        c.register(DuskBiomes.WARPED_FLOURISH, c.createWarpedForest(2))
         c.register(DuskBiomes.BASALT_DELTAS, c.createBasaltDeltas())
         c.register(DuskBiomes.SOUL_SAND_VALLEY, c.createSoulSandValley())
     }

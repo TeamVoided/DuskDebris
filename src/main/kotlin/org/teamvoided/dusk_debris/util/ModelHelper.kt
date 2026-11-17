@@ -67,13 +67,13 @@ fun BlockModelGenerators.rollableBlock(block: Block) {
             Variant.variant().with(VariantProperties.MODEL, model)
         ).with(
             PropertyDispatch.property(
-            BlockStateProperties.ORIENTATION
-        ).generate { jigsawOrientation: FrontAndTop ->
-            this.applyRotation(
-                jigsawOrientation,
-                Variant.variant()
-            )
-        })
+                BlockStateProperties.ORIENTATION
+            ).generate { jigsawOrientation: FrontAndTop ->
+                this.applyRotation(
+                    jigsawOrientation,
+                    Variant.variant()
+                )
+            })
     )
 }
 
@@ -135,13 +135,13 @@ fun BlockModelGenerators.godhomeShiftBlock(block: Block) {
         MultiVariantGenerator.multiVariant(block)
             .with(
                 PropertyDispatch.property(
-                BlockStateProperties.ORIENTATION
-            ).generate { orientation: FrontAndTop? ->
-                this.applyRotation(
-                    orientation,
-                    Variant.variant()
-                )
-            }).with(
+                    BlockStateProperties.ORIENTATION
+                ).generate { orientation: FrontAndTop? ->
+                    this.applyRotation(
+                        orientation,
+                        Variant.variant()
+                    )
+                }).with(
                 PropertyDispatch.property(DuskProperties.GODHOME_BRONZE_PHASE)
                     .select(
                         GodhomeBronzePhase.SOMBER,
@@ -208,20 +208,24 @@ fun BlockModelGenerators.registerDustBlock(block: Block, namespace: String, text
             Variant.variant()
                 .with(VariantProperties.MODEL, dustDot)
         ).with(
-            Condition.condition().term(BlockStateProperties.NORTH_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
+            Condition.condition()
+                .term(BlockStateProperties.NORTH_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
             Variant.variant()
                 .with(VariantProperties.MODEL, dustSide0)
         ).with(
-            Condition.condition().term(BlockStateProperties.SOUTH_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
+            Condition.condition()
+                .term(BlockStateProperties.SOUTH_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
             Variant.variant()
                 .with(VariantProperties.MODEL, dustSideAlt0)
         ).with(
-            Condition.condition().term(BlockStateProperties.EAST_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
+            Condition.condition()
+                .term(BlockStateProperties.EAST_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
             Variant.variant()
                 .with(VariantProperties.MODEL, dustSideAlt1)
                 .with(VariantProperties.Y_ROT, Rotation.R270)
         ).with(
-            Condition.condition().term(BlockStateProperties.WEST_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
+            Condition.condition()
+                .term(BlockStateProperties.WEST_REDSTONE, RedstoneSide.SIDE, *arrayOf(RedstoneSide.UP)),
             Variant.variant()
                 .with(VariantProperties.MODEL, dustSide1)
                 .with(VariantProperties.Y_ROT, Rotation.R270)
@@ -270,13 +274,13 @@ fun BlockModelGenerators.gunpowderBarrelBlock(block: Block) {
             Variant.variant().with(VariantProperties.MODEL, model)
         ).with(
             PropertyDispatch.property(
-            BlockStateProperties.ORIENTATION
-        ).generate { jigsawOrientation: FrontAndTop ->
-            this.applyRotation(
-                jigsawOrientation,
-                Variant.variant()
-            )
-        })
+                BlockStateProperties.ORIENTATION
+            ).generate { jigsawOrientation: FrontAndTop ->
+                this.applyRotation(
+                    jigsawOrientation,
+                    Variant.variant()
+                )
+            })
     )
 }
 
@@ -428,11 +432,10 @@ fun BlockModelGenerators.registerNethershroom(block: Block) {
     )
     this.blockStateOutput.accept(
         MultiVariantGenerator.multiVariant(block).with(
-            BlockModelGenerators.createBooleanModelDispatch(
-                NethershroomPlantBlock.SQUISHED,
-                modelSquished,
-                model
-            )
+            PropertyDispatch.property(NethershroomPlantBlock.SQUISHED)
+                .generate {
+                    Variant.variant().with(VariantProperties.MODEL, if (it == 0) model else modelSquished)
+                }
         )
     )
 }
@@ -554,9 +557,6 @@ fun BlockModelGenerators.registerGeyser(block: Block) {
         )
     )
 }
-
-
-
 
 
 fun parentedItemModel(id: ResourceLocation) = ModelTemplate(Optional.of(id.withPrefix("item/")), Optional.empty())

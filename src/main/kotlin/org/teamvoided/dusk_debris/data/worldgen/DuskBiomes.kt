@@ -18,11 +18,12 @@ object DuskBiomes {
 
     val NETHER_WASTES = nether("nether_wastes")
 
-    val CRIMSON_FOREST = nether("crimson_forest")
     val CRIMSON_WASTES = nether("crimson_wastes")
-
-    val WARPED_FOREST = nether("warped_forest")
+    val CRIMSON_FOREST = nether("crimson_forest")
+    val CRIMSON_FLOURISH = nether("crimson_ancient_flourish")
     val WARPED_WASTES = nether("warped_wastes")
+    val WARPED_FOREST = nether("warped_forest")
+    val WARPED_FLOURISH = nether("warped_ancient_flourish")
 
     val BASALT_DELTAS = nether("basalt_delta")
 

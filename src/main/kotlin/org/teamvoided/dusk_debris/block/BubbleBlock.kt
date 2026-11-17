@@ -122,7 +122,7 @@ class BubbleBlock(settings: Properties) : Block(settings), SimpleWaterloggedBloc
 
     companion object {
         val CODEC: MapCodec<BubbleBlock> = simpleCodec(::BubbleBlock)
-        val SQUISHED: BooleanProperty = DuskProperties.SQUISHED
+        val SQUISHED: BooleanProperty = DuskProperties.SQUISHED_BOOL
         val FACING: DirectionProperty = BlockStateProperties.FACING
         val POPPED_SHAPE: VoxelShape = box(0.0, 5.0, 5.0, 1.0, 11.0, 11.0)
         val POPPED_UP_SHAPE: VoxelShape = box(5.0, 15.0, 5.0, 11.0, 16.0, 11.0)

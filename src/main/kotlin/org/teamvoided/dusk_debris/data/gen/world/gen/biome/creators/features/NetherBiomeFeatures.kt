@@ -49,26 +49,30 @@ object NetherBiomeFeatures {
         BiomeDefaultFeatures.addNetherDefaultOres(gs)
     }
 
-    fun addCrimsonFeatures(gs: BiomeGenerationSettings.Builder, ancientFlourish: Boolean, forest: Boolean) {
+    fun addCrimsonFeatures(gs: BiomeGenerationSettings.Builder, type: Int) {
         addDefaultNetherFeatures(gs, false, true, false, false)
         gs.addFeature(vd9, NetherPlacements.WEEPING_VINES)
         gs.addFeature(
             vd9,
-            if (ancientFlourish) DuskPlacedFeatures.CRIMSON_FOREST_FUNGI
-            else if (forest) DuskPlacedFeatures.CRIMSON_FOREST_FUNGI
-            else DuskPlacedFeatures.CRIMSON_WASTE_FUNGI
+            when (type) {
+                2 -> DuskPlacedFeatures.CRIMSON_FOREST_FUNGI
+                1 -> DuskPlacedFeatures.CRIMSON_FOREST_FUNGI
+                else -> DuskPlacedFeatures.CRIMSON_WASTE_FUNGI
+            }
         )
         gs.addFeature(vd9, NetherPlacements.CRIMSON_FOREST_VEGETATION)
         BiomeDefaultFeatures.addNetherDefaultOres(gs)
     }
 
-    fun addWarpedFeatures(gs: BiomeGenerationSettings.Builder, ancientFlourish: Boolean, forest: Boolean) {
+    fun addWarpedFeatures(gs: BiomeGenerationSettings.Builder, type: Int) {
         addDefaultNetherFeatures(gs, false, true, false)
         gs.addFeature(
             vd9,
-            if (ancientFlourish) DuskPlacedFeatures.WARPED_FOREST_FUNGI
-            else if (forest) DuskPlacedFeatures.WARPED_FOREST_FUNGI
-            else DuskPlacedFeatures.WARPED_WASTE_FUNGI
+            when (type) {
+                2 -> DuskPlacedFeatures.WARPED_FOREST_FUNGI
+                1 -> DuskPlacedFeatures.WARPED_FOREST_FUNGI
+                else -> DuskPlacedFeatures.WARPED_WASTE_FUNGI
+            }
         )
         gs.addFeature(vd9, NetherPlacements.WARPED_FOREST_VEGETATION)
         gs.addFeature(vd9, NetherPlacements.NETHER_SPROUTS)
