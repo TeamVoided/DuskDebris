@@ -1,0 +1,54 @@
+{
+	"format_version": "1.21.1",
+	"credit": "Made with Blockbench",
+	"elements": [
+		{
+			"from": [4, 12, 4],
+			"to": [12, 16, 12],
+			"faces": {
+				"north": {"uv": [0, 8, 8, 12], "texture": "#plant"},
+				"east": {"uv": [0, 8, 8, 12], "texture": "#plant"},
+				"south": {"uv": [0, 8, 8, 12], "texture": "#plant"},
+				"west": {"uv": [0, 8, 8, 12], "texture": "#plant"},
+				"up": {"uv": [0, 0, 8, 8], "texture": "#plant", "cullface": "up"},
+				"down": {"uv": [8, 0, 16, 8], "texture": "#plant"}
+			}
+		},
+		{
+			"from": [0.8, 0, 8],
+			"to": [15.2, 12, 8],
+			"shade": false,
+			"rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8], "rescale": true},
+			"faces": {
+				"north": {"uv": [0, 4, 16, 16], "texture": "#cross"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#cross"}
+			}
+		},
+		{
+			"from": [8, 0, 0.8],
+			"to": [8, 12, 15.2],
+			"shade": false,
+			"rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8], "rescale": true},
+			"faces": {
+				"east": {"uv": [0, 4, 16, 16], "texture": "#cross"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#cross"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "shroom",
+			"origin": [0, 5, 0],
+			"scope": 0,
+			"color": 3,
+			"children": [0]
+		},
+		{
+			"name": "stalk",
+			"origin": [0, 5, 0],
+			"scope": 0,
+			"color": 0,
+			"children": [1, 2]
+		}
+	]
+}

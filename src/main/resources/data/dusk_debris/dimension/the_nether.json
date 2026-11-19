@@ -4,7 +4,7 @@
     "type": "minecraft:noise",
     "biome_source": {
       "type": "minecraft:fixed",
-      "biome": "dusk_debris:nether_test"
+      "biome": "dusk_debris:nether/nether_test"
     },
     "settings": "dusk_debris:nether"
   }

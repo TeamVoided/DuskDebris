@@ -132,6 +132,7 @@ class ModelProvider(o: FabricDataOutput) : FabricModelProvider(o) {
         }
         gen.registerDecorativeGoldBlock(DuskBlocks.LEGENDARY_CRYSTAL_CROWN, "parent/legendary_crown", false)
 
+        gen.registerNethershroomStalk(DuskBlocks.RED_NETHERSHROOM)
         gen.registerNethershroom(DuskBlocks.BLUE_NETHERSHROOM)
         gen.registerNethershroom(DuskBlocks.PURPLE_NETHERSHROOM)
         gen.registerNethershroomBlock(DuskBlocks.BLUE_NETHERSHROOM_BLOCK)

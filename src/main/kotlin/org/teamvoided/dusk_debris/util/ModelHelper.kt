@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.properties.RedstoneSide
 import org.teamvoided.dusk_debris.DuskDebris.MODID
 import org.teamvoided.dusk_debris.DuskDebris.id
 import org.teamvoided.dusk_debris.block.NethershroomPlantBlock
+import org.teamvoided.dusk_debris.block.NethershroomStalkBlock
 import org.teamvoided.dusk_debris.block.not_blocks.DuskProperties
 import org.teamvoided.dusk_debris.block.not_blocks.GodhomeBronzePhase
 import org.teamvoided.dusk_debris.block.sot.GildedChaliceBlock
@@ -407,6 +408,21 @@ fun BlockModelGenerators.registerGoldPileBlock(block: Block, sideTexture: Resour
                             ).createWithSuffix(block, "_$integer", texture, this.modelOutput)
                         )
                 })
+    )
+}
+
+fun BlockModelGenerators.registerNethershroomStalk(block: Block) {
+    this.skipAutoItemBlock(block)
+    this.createSimpleFlatItemModel(block.asItem())
+    val stem = TextureMapping().put(TextureSlot.CROSS, block.model("_stem"))
+    val shroomText = stem.put(TextureSlot.PLANT, TextureMapping.getBlockTexture(block))
+    val stalk = ModelTemplates.CROSS.createWithSuffix(block, "_stem", stem, this.modelOutput)
+    val shroom = block("parent/foliage/nethershroom_stalk", TextureSlot.PLANT, TextureSlot.CROSS)
+        .create(block, shroomText, this.modelOutput)
+    this.blockStateOutput.accept(
+        MultiVariantGenerator.multiVariant(block).with(
+            BlockModelGenerators.createBooleanModelDispatch(NethershroomStalkBlock.SHROOM, shroom, stalk)
+        )
     )
 }
 

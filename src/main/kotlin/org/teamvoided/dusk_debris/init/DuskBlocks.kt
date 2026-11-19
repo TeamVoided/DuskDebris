@@ -45,36 +45,36 @@ import org.teamvoided.dusk_debris.util.*
 
 @Suppress("MemberVisibilityCanBePrivate", "unused", "DEPRECATION")
 object DuskBlocks {
-    val BLOCKS = mutableSetOf<Block>()
-    val CUTOUT_BLOCKS = mutableSetOf<Block>()
-    val TRANSLUCENT_BLOCKS = mutableSetOf<Block>()
-    val GRASS_TINT_BLOCKS = mutableSetOf<Block>()
+    val BLOCKS: MutableSet<Block> = mutableSetOf<Block>()
+    val CUTOUT_BLOCKS: MutableSet<Block> = mutableSetOf<Block>()
+    val TRANSLUCENT_BLOCKS: MutableSet<Block> = mutableSetOf<Block>()
+    val GRASS_TINT_BLOCKS: MutableSet<Block> = mutableSetOf<Block>()
 
-    val TEST_BLOCK = register("test_block", EntityTestParticleBlock(ofFullCopy(STONE)))
+    val TEST_BLOCK: Block = register("test_block", EntityTestParticleBlock(ofFullCopy(STONE)))
 
-    val STRONG_SCAFFOLDING =
+    val STRONG_SCAFFOLDING: Block =
         registerStrongScaffolding("strong_scaffolding", StrongScaffoldingBlock(ofFullCopy(SCAFFOLDING))).cutout()
 
     //val STONE_CHEST = register("stone_chest", DuskDoubleChestBlock(copy(CHEST)) { DuskBlockEntities.STONE_CHEST })
 
-    val ACID =
+    val ACID: Block =
         registerNoItem("acid", LiquidBlock(DuskFluids.ACID, ofFullCopy(WATER).mapColor(MapColor.COLOR_LIGHT_GREEN)))
-    val FOG_BUBBLE = registerNoItem(
+    val FOG_BUBBLE: Block = registerNoItem(
         "fog_bubble", BubbleBlock(
             Properties.of().mapColor(MapColor.TERRACOTTA_PURPLE).strength(0.25f)
                 .sound(SoundType.HONEY_BLOCK).isRedstoneConductor(Blocks::never).randomTicks()
         )
     ).translucent()
-    val PURPLE_BUBBLE_BLOSSOM = register(
+    val PURPLE_BUBBLE_BLOSSOM: Block = register(
         "purple_bubble_blossom", BubbleBlossomBlock(ofFullCopy(SPORE_BLOSSOM).randomTicks())
     ).cutout()
 
-    val MYTHROCK = register("mythrock", Block(ofFullCopy(STONE)))
-    val MYTHROCK_ARTERY = register("mythrock_artery", MysticalStreamBlock(ofFullCopy(MYTHROCK)))
-    val MYTHROCK_HEART = register("mythrock_heart", MysticalPulseBlock(ofFullCopy(MYTHROCK).randomTicks()))
+    val MYTHROCK: Block = register("mythrock", Block(ofFullCopy(STONE)))
+    val MYTHROCK_ARTERY: Block = register("mythrock_artery", MysticalStreamBlock(ofFullCopy(MYTHROCK)))
+    val MYTHROCK_HEART: Block = register("mythrock_heart", MysticalPulseBlock(ofFullCopy(MYTHROCK).randomTicks()))
 
-    val DUST_BLOCK = register("dust_block", Block(ofFullCopy(SAND).strength(0.4f)))
-    val DUST_LAYER = register(
+    val DUST_BLOCK: Block = register("dust_block", Block(ofFullCopy(SAND).strength(0.4f)))
+    val DUST_LAYER: Block = register(
         "dust", DustLayerBlock(
             ofFullCopy(DUST_BLOCK)
                 .strength(0.2f)
@@ -85,7 +85,7 @@ object DuskBlocks {
                     blockState.getValue(DustLayerBlock.LAYERS) >= DustLayerBlock.MAX_LAYERS
                 }
                 .pushReaction(PushReaction.DESTROY)))
-    val DUST_FALLS = register(
+    val DUST_FALLS: Block = register(
         "dust_falls", DustFallsBlock(
             ofFullCopy(DUST_BLOCK)
                 .speedFactor(0.8f)
@@ -96,10 +96,10 @@ object DuskBlocks {
         )
     )
 
-    val REDSTONE_AIR = registerNoItem("redstone_air", RedstoneAirBlock(ofFullCopy(AIR)))
-    val REDSTONE_CAMPFIRE =
+    val REDSTONE_AIR: Block = registerNoItem("redstone_air", RedstoneAirBlock(ofFullCopy(AIR)))
+    val REDSTONE_CAMPFIRE: Block =
         register("redstone_campfire", RedstoneCampfireBlock(ofFullCopy(CAMPFIRE).lightLevel(litBlockEmission(7))))
-    val REDSTONE_PUMPKIN =
+    val REDSTONE_PUMPKIN: Block =
         register("redstone_pumpkin", RedstonePumpkinBlock(ofFullCopy(JACK_O_LANTERN).lightLevel(litBlockEmission(7))))
     val REDSTONE_CANDLE = register(
         "redstone_candle",
@@ -155,6 +155,13 @@ object DuskBlocks {
         SoulVesselBlock(ofFullCopy(PALE_SOUL_LANTERN).sound(vesselBlockSound))
     ).cutout()
 
+    val RED_NETHERSHROOM = register(
+        "red_nethershroom",
+        NethershroomStalkBlock(
+            Properties.of().forceSolidOff().mapColor(MapColor.COLOR_RED).strength(0.1F).sound(SoundType.FUNGUS)
+                .pushReaction(PushReaction.DESTROY)
+        )
+    ).cutout()
     val BLUE_NETHERSHROOM = register(
         "blue_nethershroom",
         NethershroomPlantBlock(
@@ -162,8 +169,7 @@ object DuskBlocks {
             blueNethershroomSmoke,
             MobEffects.POISON,
             true,
-            Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE).strength(0.1F)
-                .sound(SoundType.FUNGUS).noCollission()
+            ofFullCopy(WARPED_FUNGUS).mapColor(MapColor.COLOR_LIGHT_BLUE).noCollission()
         )
     ).cutout()
     val BLUE_NETHERSHROOM_BLOCK = register(
@@ -172,8 +178,7 @@ object DuskBlocks {
             blueNethershroomSmoke,
             MobEffects.POISON,
             true,
-            Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE).instrument(NoteBlockInstrument.BASS)
-                .strength(0.2f).sound(SoundType.NETHER_WOOD)
+            ofFullCopy(BROWN_MUSHROOM_BLOCK).mapColor(BLUE_NETHERSHROOM.defaultMapColor()).sound(SoundType.NETHER_WOOD)
         )
     )
     val PURPLE_NETHERSHROOM = register(
@@ -183,8 +188,7 @@ object DuskBlocks {
             purpleNethershroomSmoke,
             MobEffects.BLINDNESS,
             false,
-            Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(0.1F)
-                .sound(SoundType.FUNGUS).noCollission()
+            ofFullCopy(BLUE_NETHERSHROOM).mapColor(MapColor.COLOR_PURPLE)
         )
     ).cutout()
     val PURPLE_NETHERSHROOM_BLOCK = register(
@@ -193,17 +197,11 @@ object DuskBlocks {
             purpleNethershroomSmoke,
             MobEffects.BLINDNESS,
             false,
-            Properties.of().mapColor(MapColor.COLOR_PURPLE).instrument(NoteBlockInstrument.BASS)
-                .strength(0.2f).sound(SoundType.NETHER_WOOD)
+            ofFullCopy(BLUE_NETHERSHROOM_BLOCK).mapColor(PURPLE_NETHERSHROOM.defaultMapColor())
         )
     )
-    val NETHERSHROOM_STEM = register(
-        "nethershroom_stem",
-        HugeMushroomBlock(
-            Properties.of().mapColor(MapColor.WOOL).instrument(NoteBlockInstrument.BASS).strength(0.2f)
-                .sound(SoundType.NETHER_WOOD)
-        )
-    )
+    val NETHERSHROOM_STEM =
+        register("nethershroom_stem", HugeMushroomBlock(ofFullCopy(MUSHROOM_STEM).sound(SoundType.NETHER_WOOD)))
 
     val GUNPOWDER = register(
         "gunpowder",
