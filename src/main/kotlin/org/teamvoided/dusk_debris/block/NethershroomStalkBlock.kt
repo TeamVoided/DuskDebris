@@ -5,22 +5,25 @@ import net.minecraft.Util
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.tags.BlockTags
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.BonemealableBlock
 import net.minecraft.world.level.block.BushBlock
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.block.state.properties.DirectionProperty
-import net.minecraft.world.level.block.state.properties.IntegerProperty
+import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
-import org.teamvoided.dusk_debris.util.rotate
 import org.teamvoided.dusk_debris.util.symmetricalBoxY
-import java.util.function.BiFunction
 
 
 class NethershroomStalkBlock(settings: Properties) : BushBlock(settings), BonemealableBlock {
@@ -31,22 +34,61 @@ class NethershroomStalkBlock(settings: Properties) : BushBlock(settings), Boneme
             stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(SHROOM, true)
-                .setValue(EXTRA_SHROOM, 0)
         )
     }
+
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
+        super.createBlockStateDefinition(builder)
+        builder.add(SHROOM)
+    }
+
+    override fun mayPlaceOn(blockState: BlockState, blockGetter: BlockGetter, blockPos: BlockPos): Boolean {
+        val blockPos2 = blockPos.below()
+        val blockState2 = blockGetter.getBlockState(blockPos2)
+        return blockState2.`is`(this) || blockState2.isFaceSturdy(blockGetter, blockPos2, Direction.UP)
+    }
+
+    override fun updateShape(
+        blockState: BlockState,
+        direction: Direction,
+        blockState2: BlockState,
+        levelAccessor: LevelAccessor,
+        blockPos: BlockPos,
+        blockPos2: BlockPos?
+    ): BlockState {
+        val supr = super.updateShape(blockState, direction, blockState2, levelAccessor, blockPos, blockPos2)
+        return if (supr == Blocks.AIR) {
+            supr
+        } else {
+            blockState.setValue(SHROOM, levelAccessor.getBlockState(blockPos.above()).`is`(this))
+        }
+    }
+
+    override fun getShape(
+        blockState: BlockState,
+        blockGetter: BlockGetter,
+        blockPos: BlockPos,
+        collisionContext: CollisionContext
+    ): VoxelShape = SHAPE_BY_PROPERTIES.apply(blockState.getValue(SHROOM))
+
+    override fun getCollisionShape(
+        blockState: BlockState,
+        blockGetter: BlockGetter,
+        blockPos: BlockPos,
+        collisionContext: CollisionContext
+    ): VoxelShape = COLLISION_SHAPE_BY_PROPERTIES.apply(blockState.getValue(SHROOM))
+
 
     override fun isValidBonemealTarget(
         level: LevelReader,
         pos: BlockPos,
-        state: BlockState?
+        state: BlockState
     ): Boolean {
         val growPos = getTip(level, pos).above()
         return this.canGrowInto(level.getBlockState(growPos)) && level.maxBuildHeight < growPos.y
     }
 
-    private fun canGrowInto(state: BlockState): Boolean {
-        return state.isAir || (state.`is`(this) && state.getValue(EXTRA_SHROOM) == 0)
-    }
+    private fun canGrowInto(state: BlockState): Boolean = state.isAir
 
     override fun isBonemealSuccess(
         level: Level,
@@ -61,90 +103,41 @@ class NethershroomStalkBlock(settings: Properties) : BushBlock(settings), Boneme
         blockPos: BlockPos,
         blockState: BlockState
     ) {
-        val tipPos = getTip(serverLevel, blockPos)
-        val tipState = serverLevel.getBlockState(tipPos)
-        val growPos = tipPos.above()
-        val worldState = serverLevel.getBlockState(growPos)
-        if (canGrowInto(worldState)) {
-            if (tipState.getValue(SHROOM)) {
-                serverLevel.setBlockAndUpdate(growPos, tipState.setValue(EXTRA_SHROOM, 0))
-            } else if (tipState.getValue(EXTRA_SHROOM) == 1) {
-                serverLevel.setBlockAndUpdate(growPos, tipState)
-            } else {
-                serverLevel.setBlockAndUpdate(growPos, tipState.setValue(EXTRA_SHROOM, 0).setValue(SHROOM, true))
-            }
-            return
+        val growPos = getTip(serverLevel, blockPos).above()
+        if (canGrowInto(serverLevel.getBlockState(growPos))) {
+            serverLevel.setBlockAndUpdate(growPos, blockState.setValue(SHROOM, true))
         }
-
-        val downState = serverLevel.getBlockState(blockPos.below())
-        if (blockState.getValue(EXTRA_SHROOM) == 0 && (!downState.`is`(this) || downState.getValue(EXTRA_SHROOM) == 1)) {
-            serverLevel.setBlock(blockPos, blockState.cycle(EXTRA_SHROOM), 3)
-            return
-        }
-    }
-
-    fun getHighest(levelReader: LevelReader, blockPos: BlockPos, blockState: BlockState, height: Int = 0): Int {
-        if (blockState.`is`(this)) {
-            if (blockState.getValue(SHROOM) || blockState.getValue(EXTRA_SHROOM) == 1)
-                return height
-            val upState = levelReader.getBlockState(blockPos.above())
-            if (upState.`is`(this))
-                return getHighest(levelReader, blockPos.above(), upState, height + 1)
-        }
-        return height
     }
 
     fun getTip(level: BlockGetter, pos: BlockPos): BlockPos {
-        val dir = Direction.DOWN
         val forwardPos = pos.mutable()
 
-        var thisState: BlockState
-        var forwardState: BlockState = level.getBlockState(forwardPos)
+        var forwardState: BlockState
         do {
-            thisState = forwardState
-            forwardPos.move(dir)
+            forwardPos.move(Direction.UP)
             forwardState = level.getBlockState(forwardPos)
-        } while (forwardState.`is`(this) && thisState.getValue(EXTRA_SHROOM) != 1)
+        } while (forwardState.`is`(this))
 
-        return forwardPos.relative(dir.opposite).immutable()
+        return forwardPos.relative(Direction.DOWN).immutable()
     }
 
     companion object {
         val CODEC: MapCodec<out BushBlock> = simpleCodec(::NethershroomStalkBlock)
         val FACING: DirectionProperty = BlockStateProperties.HORIZONTAL_FACING
         val SHROOM: BooleanProperty = BlockStateProperties.SHORT
-        val EXTRA_SHROOM: IntegerProperty = IntegerProperty.create("extra", 0, 2)
 
-
-        val MAIN_STALK_1: VoxelShape = symmetricalBoxY(5.0, 0.0, 12.0)
-        val MAIN_STALK_2: VoxelShape = MAIN_STALK_1.tallShape()
-
-        //val EXTRA_STALK_0: VoxelShape = Shapes.empty()
-        val EXTRA_STALK_1: VoxelShape =
-            Shapes.or(box(1.0, 0.0, 1.0, 5.0, 2.0, 5.0), box(11.0, 0.0, 11.0, 15.0, 5.0, 14.0))
-        val EXTRA_STALK_2: VoxelShape = EXTRA_STALK_1.tallShape()
-
-        val BIG_SHROOM: VoxelShape = MAIN_STALK_1.createMushroom()
-        val SMA_SHROOM: VoxelShape = EXTRA_STALK_1.createMushroom()
-        private val SHAPE_BY_PROPERTIES: BiFunction<Direction, Int, VoxelShape> =
-            Util.memoize { direction: Direction, encodedInt: Int ->
-                val shroom = encodedInt > 2
-                val extra = encodedInt % 3
-                var voxelShape = Shapes.or(if (shroom) MAIN_STALK_1 else MAIN_STALK_2)
-                when (extra) {
-                    1 -> voxelShape = Shapes.or(voxelShape, EXTRA_STALK_1.rotate(direction.get2DDataValue()))
-                    2 -> voxelShape = Shapes.or(voxelShape, EXTRA_STALK_2.rotate(direction.get2DDataValue()))
-                }
-                voxelShape = Shapes.or(voxelShape, COLLISION_SHAPE_BY_PROPERTIES.apply(direction, encodedInt))
+        val STALK_SHAPE: VoxelShape = symmetricalBoxY(5.0, 0.0, 12.0)
+        val STALK_FULL_SHAPE: VoxelShape = STALK_SHAPE.tallShape()
+        val SHROOM_SHAPE: VoxelShape = STALK_SHAPE.createMushroom()
+        private val SHAPE_BY_PROPERTIES: java.util.function.Function<Boolean, VoxelShape> =
+            Util.memoize { shroom: Boolean ->
+                var voxelShape = Shapes.or(if (shroom) STALK_SHAPE else STALK_FULL_SHAPE)
+                voxelShape = Shapes.or(voxelShape, COLLISION_SHAPE_BY_PROPERTIES.apply(shroom))
                 voxelShape.singleEncompassing()
             }
-        private val COLLISION_SHAPE_BY_PROPERTIES: BiFunction<Direction, Int, VoxelShape> =
-            Util.memoize { direction: Direction, encodedInt: Int ->
-                val shroom = encodedInt > 2
-                val extra = encodedInt % 3
-                var voxelShape = if (shroom) BIG_SHROOM else Shapes.empty()
-                if (extra == 1) voxelShape = Shapes.or(voxelShape, SMA_SHROOM.rotate(direction.get2DDataValue()))
-                voxelShape.singleEncompassing()
+        private val COLLISION_SHAPE_BY_PROPERTIES: java.util.function.Function<Boolean, VoxelShape> =
+            Util.memoize { shroom: Boolean ->
+                if (shroom) SHROOM_SHAPE.singleEncompassing() else Shapes.empty()
             }
 
 
