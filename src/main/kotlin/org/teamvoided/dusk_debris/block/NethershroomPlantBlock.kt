@@ -68,36 +68,21 @@ class NethershroomPlantBlock(
         canSupportCenter(levelReader, blockPos.below(), Direction.UP)
 
     override fun entityInside(state: BlockState, world: Level, pos: BlockPos, entity: Entity) {
-        if (state.getValue(SQUISHED) == 0 &&
-            entity.showVehicleHealth() &&
-            !entity.isShiftKeyDown &&
-            !entity.type.`is`(DuskEntityTypeTags.IS_NOT_AFFECTED_BY_NETHERSHROOM)
-        ) {
-            if ((entity is Player || world.gameRules.getBoolean(GameRules.RULE_MOBGRIEFING))) {
-                if (world is ServerLevel) tick(state, world, pos, world.random)
-            }
-        }
+        if (state.getValue(SQUISHED) == 0 && squishableCondition(world, entity))
+            tick(state, world as ServerLevel, pos, world.random)
         super.entityInside(state, world, pos, entity)
     }
 
     override fun tick(state: BlockState, world: ServerLevel, pos: BlockPos, random: RandomSource) {
         when (state.getValue(SQUISHED)) {
             0 -> {
-                world.playSound(
-                    null,
-                    pos,
-                    DuskSoundEvents.BLOCK_NETHERSHROOM_SQUISHED,
-                    SoundSource.BLOCKS,
-                    1f,
-                    0.9f + random.nextFloat() * 0.2f
-                )
                 world.setBlock(pos, state.cycle(SQUISHED), 3)
-                world.scheduleTick(pos, this, DELAY)
+                playSquishAndSchedule(state, world, pos, random, DELAY)
             }
 
             1 -> {
-                explode(world, pos, particle, statusEffect, hasDoubleEffect)
                 world.setBlock(pos, state.cycle(SQUISHED), 3)
+                explode(world, pos, particle, statusEffect, hasDoubleEffect)
                 world.scheduleTick(pos, this, COOLDOWN)
             }
 
@@ -173,6 +158,32 @@ class NethershroomPlantBlock(
         val SQUISHED: IntegerProperty = DuskProperties.SQUISHED
         private const val COOLDOWN: Int = 3 * 60 * 20
         private const val DELAY: Int = 10
+
+        fun squishableCondition(world: Level, entity: Entity): Boolean {
+            return (world is ServerLevel &&
+                    entity.showVehicleHealth() &&
+                    !entity.isShiftKeyDown &&
+                    !entity.type.`is`(DuskEntityTypeTags.IS_NOT_AFFECTED_BY_NETHERSHROOM)
+                    && (entity is Player || world.gameRules.getBoolean(GameRules.RULE_MOBGRIEFING)))
+        }
+
+        fun playSquishAndSchedule(
+            state: BlockState,
+            world: ServerLevel,
+            pos: BlockPos,
+            random: RandomSource,
+            delay: Int
+        ) {
+            world.playSound(
+                null,
+                pos,
+                DuskSoundEvents.BLOCK_NETHERSHROOM_SQUISHED,
+                SoundSource.BLOCKS,
+                1f,
+                0.9f + random.nextFloat() * 0.2f
+            )
+            world.scheduleTick(pos, state.block, delay)
+        }
 
         fun explode(
             world: Level,

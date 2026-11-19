@@ -158,7 +158,6 @@ object DuskBlocks {
     val BLUE_NETHERSHROOM = register(
         "blue_nethershroom",
         NethershroomPlantBlock(
-            4,
             DuskConfiguredFeatures.HUGE_BLUE_NETHERSHROOM,
             blueNethershroomSmoke,
             MobEffects.POISON,
@@ -170,7 +169,6 @@ object DuskBlocks {
     val BLUE_NETHERSHROOM_BLOCK = register(
         "blue_nethershroom_block",
         NethershroomBlock(
-            4,
             blueNethershroomSmoke,
             MobEffects.POISON,
             true,
@@ -181,7 +179,6 @@ object DuskBlocks {
     val PURPLE_NETHERSHROOM = register(
         "purple_nethershroom",
         NethershroomPlantBlock(
-            16,
             DuskConfiguredFeatures.HUGE_PURPLE_NETHERSHROOM,
             purpleNethershroomSmoke,
             MobEffects.BLINDNESS,
@@ -193,7 +190,6 @@ object DuskBlocks {
     val PURPLE_NETHERSHROOM_BLOCK = register(
         "purple_nethershroom_block",
         NethershroomBlock(
-            16,
             purpleNethershroomSmoke,
             MobEffects.BLINDNESS,
             false,
