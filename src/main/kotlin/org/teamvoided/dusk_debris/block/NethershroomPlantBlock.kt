@@ -107,7 +107,7 @@ class NethershroomPlantBlock(
 
     override fun isValidBonemealTarget(world: LevelReader, pos: BlockPos, state: BlockState): Boolean {
         val belowBlock = world.getBlockState(pos.below())
-        return belowBlock.`is`(DuskBlockTags.NETHERSHROOM_GROWABLE_ON)
+        return belowBlock.`is`(DuskBlockTags.NETHERSHROOM_GROWABLE_ON) && state.getValue(SQUISHED) == 0
     }
 
     override fun isBonemealSuccess(world: Level, random: RandomSource, pos: BlockPos, state: BlockState): Boolean =
